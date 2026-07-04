@@ -20,9 +20,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MedPalTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    MedPal_App(modifier = Modifier.padding(innerPadding))
-                }
+                AppRoot()
             }
         }
     }

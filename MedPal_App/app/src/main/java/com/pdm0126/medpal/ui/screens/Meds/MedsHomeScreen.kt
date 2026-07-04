@@ -1,4 +1,4 @@
-package com.pdm0126.medpal.screens.Meds
+package com.pdm0126.medpal.ui.screens.Meds
 
 import androidx.compose.runtime.Composable
 
