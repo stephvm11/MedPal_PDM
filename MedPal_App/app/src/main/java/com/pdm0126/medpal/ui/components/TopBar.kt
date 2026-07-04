@@ -20,6 +20,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -36,7 +37,7 @@ import com.pdm0126.medpal.R
 enum class TopBarCases { HOME, NAVIGATION, FORM, DEFAULT }
 
 @Composable
-fun TopBar(
+fun CustomTopBar(
     title: String,
     case: TopBarCases = TopBarCases.DEFAULT,
     onUserClick: () -> Unit = {},
@@ -63,7 +64,7 @@ fun TopBar(
                         Icon(
                             imageVector = Icons.Default.ArrowBackIosNew,
                             contentDescription = "Atrás",
-                            tint = colorResource(R.color.rosy_brown),
+                            tint = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier.height(50.dp)
                         )
                     }
@@ -74,7 +75,7 @@ fun TopBar(
                         Icon(
                             imageVector = Icons.Default.CalendarMonth,
                             contentDescription = "Calendario",
-                            tint = colorResource(R.color.rosy_brown),
+                            tint = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier.height(50.dp)
                         )
                     }
@@ -85,7 +86,7 @@ fun TopBar(
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = "Cerrar",
-                            tint = colorResource(R.color.rosy_brown),
+                            tint = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier.height(50.dp)
                         )
                     }
@@ -96,8 +97,8 @@ fun TopBar(
 
             Text(
                 text = title,
-                color = colorResource(R.color.rosy_brown),
-                fontSize = 25.sp,
+                color = MaterialTheme.colorScheme.onPrimary,
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
 
             )
@@ -109,7 +110,7 @@ fun TopBar(
                         Icon(
                             imageVector = Icons.Default.Person,
                             contentDescription = "Perfil",
-                            tint = colorResource(R.color.rosy_brown),
+                            tint = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier.height(50.dp)
                         )
                     }
@@ -126,8 +127,7 @@ fun TopBar(
                     ) {
                         Text(
                             text = "Guardar",
-                            color = colorResource(R.color.midnight_green),
-                            fontSize = 15.sp,
+                            style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.SemiBold
                         )
 
@@ -142,6 +142,6 @@ fun TopBar(
 @Preview(showBackground = true)
 @Composable
 fun topPreview() {
-    TopBar(title = "", case = TopBarCases.FORM)
+    CustomTopBar(title = "", case = TopBarCases.FORM)
 
 }
