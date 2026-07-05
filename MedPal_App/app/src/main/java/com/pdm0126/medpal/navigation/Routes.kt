@@ -13,4 +13,7 @@ sealed class Routes : NavKey {
 
     @Serializable
     data object Meds : Routes()
+
+    @Serializable
+    data object MedsAddForm : Routes()
 }

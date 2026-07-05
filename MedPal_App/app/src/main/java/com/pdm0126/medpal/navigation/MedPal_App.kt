@@ -5,6 +5,7 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import com.pdm0126.medpal.ui.screens.Appoinments.AppointmentsHomeScreen
+import com.pdm0126.medpal.ui.screens.AddMed.AddMedicationScreen
 import com.pdm0126.medpal.ui.screens.Meds.MedsHomeScreen
 
 @Composable
@@ -30,13 +31,20 @@ fun MedPal_App(
             }
             entry<Routes.Meds>{
                 MedsHomeScreen(
-                    onNavigateToAddMedication = {},
+                    onNavigateToAddMedication = {backStack.add(Routes.MedsAddForm)},
                     onNavigateToProfile = onLogout,
                     currentRoute = "medication",
                     onNavigateToItemClick = {route ->
                         if (route == "appointments") {
                             backStack.add(Routes.Appoinments)
                         }
+                    }
+                )
+            }
+            entry<Routes.MedsAddForm> {
+                AddMedicationScreen(
+                    onCancel = {
+                        backStack.removeLastOrNull()
                     }
                 )
             }

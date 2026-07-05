@@ -71,16 +71,16 @@ class MedicationViewModel(
                         val isTakenToday = lastDoseDate?.isEqual(today) == true
 
                         val displayTime = if (isTakenToday && lastDoseDateTime != null) {
-                            lastDoseDateTime.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm:ss"))
+                            lastDoseDateTime.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm"))
                         } else {
-                            reminder.time
+                            reminder.time.take(5)
                         }
 
                         allItems.add(
                             AllMedItem(
                                 reminderId = reminder.id,
                                 name = med.name,
-                                time = reminder.time
+                                time = displayTime
                             )
                         )
 
