@@ -6,8 +6,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -27,12 +31,13 @@ import androidx.compose.foundation.lazy.items
 
 @Composable
 fun AllMyMeds(
-    meds: List<AllMedItem>
+    meds: List<AllMedItem>,
+    modifier: Modifier = Modifier
 ){
 
     var expanded by remember { mutableStateOf(false) }
 
-    Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+    Column(modifier = modifier.fillMaxWidth().padding(16.dp)) {
 
         Row(
             modifier = Modifier
@@ -51,25 +56,28 @@ fun AllMyMeds(
                 imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                 contentDescription = if (expanded) "Colapsar" else "Expandir"
             )
-
-            AnimatedVisibility(visible = expanded) {
-                LazyRow(
-                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(meds) { item ->
-                        MedGeneralCard(
-                            name = item.name,
-                            hour = item.time
-                        )
-
-                    }
+        }
+        AnimatedVisibility(visible = expanded) {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(3), // Caben exactamente 3 por fila antes de bajar
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                userScrollEnabled = false, // Delega el scroll a la pantalla principal[cite: 3]
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 1000.dp) // Evita colapsar y le permite expandirse hacia abajo[cite: 3]
+                    .padding(top = 12.dp)
+            ) {
+                items(meds) { item ->
+                    MedGeneralCard(
+                        name = item.name,
+                        hour = item.time,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
-
             }
 
         }
 
     }
-
 }
