@@ -49,16 +49,13 @@ class MedicationViewModel(
         viewModelScope.launch {
             repository.getMedicationsWithReminders(userId).collect { medicationsWithReminders ->
 
-                android.util.Log.d("MEDPAL_DEBUG", "Filtro Usuario ID: $userId")
-                android.util.Log.d("MEDPAL_DEBUG", "Total de medicamentos encontrados en Room: ${medicationsWithReminders.size}")
-
                 val dailyItems = mutableListOf<MedDay>()
                 val allItems = mutableListOf<AllMedItem>()
 
                 val today = LocalDate.now()
 
                 medicationsWithReminders.forEach { relation ->
-                    android.util.Log.d("MEDPAL_DEBUG", "Procesando medicamento: ${relation.medication.name}")
+
                     val med = relation.medication
 
                     relation.reminders.forEach { reminder ->
@@ -76,39 +73,31 @@ class MedicationViewModel(
                             reminder.time.take(5)
                         }
 
-                        allItems.add(
-                            AllMedItem(
-                                reminderId = reminder.id,
-                                name = med.name,
-                                time = displayTime
-                            )
-                        )
+                        val isScheduledForToday = if (lastDoseDate == null) {
+                            true
+                        } else {
+                            val daysSinceLastDose = ChronoUnit.DAYS.between(lastDoseDate, today)
+                            daysSinceLastDose % reminder.frequencyDays == 0L
+                        }
 
-                        if (lastDoseDate == null) {
+                        if (isScheduledForToday) {
                             dailyItems.add(
                                 MedDay(
                                     reminderId = reminder.id,
                                     name = med.name,
                                     dosage = med.dosage,
                                     time = displayTime,
-                                    isTaken = false
+                                    isTaken = isTakenToday
                                 )
                             )
                         } else {
-                            val daysSinceLastDose = ChronoUnit.DAYS.between(lastDoseDate, today)
-                            val isScheduledForToday = daysSinceLastDose % reminder.frequencyDays == 0L
-
-                            if (isScheduledForToday) {
-                                dailyItems.add(
-                                    MedDay(
-                                        reminderId = reminder.id,
-                                        name = med.name,
-                                        dosage = med.dosage,
-                                        time = displayTime,
-                                        isTaken = isTakenToday
-                                    )
+                            allItems.add(
+                                AllMedItem(
+                                    reminderId = reminder.id,
+                                    name = med.name,
+                                    time = displayTime
                                 )
-                            }
+                            )
                         }
                     }
                 }
