@@ -4,49 +4,46 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.pdm0126.medpal.data.local.database.dao.MedicamentoDao
-import com.pdm0126.medpal.data.local.database.dao.RecordatorioMedicamentoDao
-import com.pdm0126.medpal.data.local.database.dao.UsuarioDao
-import com.pdm0126.medpal.data.local.database.dao.ViaDao
-import com.pdm0126.medpal.data.local.database.entities.MedicamentoEntity
-import com.pdm0126.medpal.data.local.database.entities.RecordatorioMedicamentoEntity
-import com.pdm0126.medpal.data.local.database.entities.UsuarioEntity
-import com.pdm0126.medpal.data.local.database.entities.ViaEntity
+import com.pdm0126.medpal.data.local.database.dao.MedicationDao
+import com.pdm0126.medpal.data.local.database.dao.MedicationReminderDao
+import com.pdm0126.medpal.data.local.database.dao.UserDao
+import com.pdm0126.medpal.data.local.database.dao.AdministrationRouteDao
+import com.pdm0126.medpal.data.local.database.entities.MedicationEntity
+import com.pdm0126.medpal.data.local.database.entities.MedicationReminderEntity
+import com.pdm0126.medpal.data.local.database.entities.UserEntity
+import com.pdm0126.medpal.data.local.database.entities.AdministrationRouteEntity
 
 @Database(
     entities = [
-        UsuarioEntity::class,
-        ViaEntity::class,
-        MedicamentoEntity::class,
-        RecordatorioMedicamentoEntity::class
+        UserEntity::class,
+        AdministrationRouteEntity::class,
+        MedicationEntity::class,
+        MedicationReminderEntity::class
     ],
-    version = 1,
-    exportSchema = false
+    version = 7,
+exportSchema = false
 )
-abstract class AppDataBase : RoomDatabase(){
+abstract class AppDataBase : RoomDatabase() {
 
-    abstract fun usuarioDao(): UsuarioDao
-    abstract fun viaDao(): ViaDao
-    abstract fun medicamentoDao(): MedicamentoDao
-    abstract fun recordatorioMedicamentoDao(): RecordatorioMedicamentoDao
-
-    companion object{
+    abstract fun userDao(): UserDao
+    abstract fun administrationRouteDao(): AdministrationRouteDao
+    abstract fun medicationDao(): MedicationDao
+    abstract fun medicationReminderDao(): MedicationReminderDao
+    companion object {
         @Volatile
         private var INSTANCE: AppDataBase? = null
 
-        fun getDatbase(context: Context): AppDataBase {
-            return INSTANCE ?: synchronized(this){
+        fun getDatabase(context: Context): AppDataBase {
+            return INSTANCE ?: synchronized(this) {
                 Room.databaseBuilder(
                     context = context.applicationContext,
-                    klass = AppDataBase::class.java,
-                    name = "medpal_database"
+                klass = AppDataBase::class.java,
+                name = "medpal_database"
                 )
-                    .fallbackToDestructiveMigration(false)
-                    .build()
-                    .also { INSTANCE = it }
+                .fallbackToDestructiveMigration()
+                .build()
+                .also { INSTANCE = it }
             }
         }
-
     }
-
 }

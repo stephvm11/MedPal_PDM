@@ -22,7 +22,7 @@ class AuthViewModel (
     val isLoggedIn: StateFlow<Boolean?> = repository.isLoggedIn
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
-    val userName: StateFlow<String?> = repository.userName
+    val userName: StateFlow<String?> = repository.userId
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()

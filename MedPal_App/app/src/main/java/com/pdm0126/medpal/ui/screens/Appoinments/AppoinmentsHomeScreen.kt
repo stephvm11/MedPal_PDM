@@ -21,9 +21,16 @@ import com.pdm0126.medpal.ui.components.TopBarCases
 fun AppointmentsHomeScreen(
     modifier: Modifier = Modifier,
     onLogout: () -> Unit,
-    userName: String?
+    userName: String?,
+    currentRoute: String,
+    onNavigateToItemClick:(String) -> Unit,
 ) {
-    AppScaffold("Menú", TopBarCases.HOME, {}, { onLogout }) { paddingValues ->
+    AppScaffold(title = "Menú",
+        topBarScreenCase =  TopBarCases.HOME,
+        onCalendarClick = {},
+        onUserClick = onLogout,
+        currentRoute =  currentRoute,
+        onNavigationItemClick = onNavigateToItemClick) { paddingValues ->
         Column(
             modifier = modifier
                 .fillMaxSize()

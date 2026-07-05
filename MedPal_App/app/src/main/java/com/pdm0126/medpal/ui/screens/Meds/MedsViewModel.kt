@@ -1,0 +1,162 @@
+package com.pdm0126.medpal.ui.screens.Meds
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.pdm0126.medpal.data.model.AllMedItem
+import com.pdm0126.medpal.data.model.MedDay
+import com.pdm0126.medpal.data.model.MedGeneral
+import com.pdm0126.medpal.data.repositories.repositoryMedication.MedicationRepository
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import com.pdm0126.medpal.MedPalApplication
+import com.pdm0126.medpal.data.model.Medication
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
+
+class MedicationViewModel(
+    private val repository: MedicationRepository,
+    private val userId: Long
+) : ViewModel() {
+
+    private val _generalMedList = MutableStateFlow(MedGeneral())
+    val generalMedList = _generalMedList.asStateFlow()
+
+    private val _event = MutableSharedFlow<String>()
+    val event = _event.asSharedFlow()
+
+    init {
+        loadData()
+        refreshFromServer()
+    }
+
+    private fun loadData() {
+        _generalMedList.update { it.copy(isLoading = true) }
+
+        viewModelScope.launch {
+            repository.getMedicationsWithReminders(userId).collect { medicationsWithReminders ->
+
+                android.util.Log.d("MEDPAL_DEBUG", "Filtro Usuario ID: $userId")
+                android.util.Log.d("MEDPAL_DEBUG", "Total de medicamentos encontrados en Room: ${medicationsWithReminders.size}")
+
+                val dailyItems = mutableListOf<MedDay>()
+                val allItems = mutableListOf<AllMedItem>()
+
+                val today = LocalDate.now()
+
+                medicationsWithReminders.forEach { relation ->
+                    android.util.Log.d("MEDPAL_DEBUG", "Procesando medicamento: ${relation.medication.name}")
+                    val med = relation.medication
+
+                    val lastDoseDateTime = med.lastDose?.let {
+                        try { LocalDateTime.parse(it, DateTimeFormatter.ISO_DATE_TIME) } catch (e: Exception) { null }
+                    }
+                    val lastDoseDate = lastDoseDateTime?.toLocalDate()
+
+                    relation.reminders.forEach { reminder ->
+                        allItems.add(
+                            AllMedItem(
+                                reminderId = reminder.id,
+                                name = med.name,
+                                time = reminder.time
+                            )
+                        )
+
+                        if (lastDoseDate == null) {
+                            dailyItems.add(
+                                MedDay(
+                                    reminderId = reminder.id,
+                                    name = med.name,
+                                    dosage = med.dosage,
+                                    time = reminder.time,
+                                    isTaken = false
+                                )
+                            )
+                        } else {
+                            val daysSinceLastDose = ChronoUnit.DAYS.between(lastDoseDate, today)
+                            val isScheduledForToday = daysSinceLastDose % reminder.frequencyDays == 0L
+
+                            if (isScheduledForToday) {
+                                val isTakenToday = lastDoseDate.isEqual(today)
+
+                                dailyItems.add(
+                                    MedDay(
+                                        reminderId = reminder.id,
+                                        name = med.name,
+                                        dosage = med.dosage,
+                                        time = reminder.time,
+                                        isTaken = isTakenToday
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+
+                _generalMedList.update {
+                    it.copy(
+                        isLoading = false,
+                        dailyMedications = dailyItems,
+                        allMedications = allItems
+                    )
+                }
+            }
+        }
+    }
+
+    fun refreshFromServer() {
+        viewModelScope.launch {
+            repository.refresh(userId).onFailure { error ->
+                android.util.Log.e("MEDPAL_DEBUG", "¡La descarga de Supabase falló!", error)
+                _event.emit("Error de sincronización: ${error.localizedMessage}")
+            }
+        }
+    }
+
+    fun toggleTakeStatus(reminderId: Long) {
+        viewModelScope.launch {
+            // 1. Obtenemos el timestamp actual en formato ISO_DATE_TIME (ej: 2026-07-04T15:30:00)
+            val currentTimestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME)
+
+            // 2. Buscamos el medicamento dueño de este recordatorio para actualizar su 'ultima_dosis'
+            // NOTA: Aquí idealmente agregarás un método en tu repositorio como:
+            // repository.updateLastDose(reminderId, currentTimestamp)
+
+            // Al actualizar la base de datos local, 'loadData()' reacciona al instante,
+            // recalcula los días con la nueva fecha, cambia 'isTaken' a true y la carita se pone feliz.
+            _event.emit("Medicamento registrado localmente")
+        }
+    }
+
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val app = this[APPLICATION_KEY] as MedPalApplication
+
+                val medRepository = app.appProvider.provideMedicationRepository()
+                val authRepository = app.appProvider.provideAuthRepository()
+
+                val currentUserId = runBlocking {
+                    authRepository.userId.first()?.toLongOrNull() ?: 0L
+                }
+
+                MedicationViewModel(
+                    repository = medRepository,
+                    userId = currentUserId
+                )
+            }
+        }
+    }
+}
