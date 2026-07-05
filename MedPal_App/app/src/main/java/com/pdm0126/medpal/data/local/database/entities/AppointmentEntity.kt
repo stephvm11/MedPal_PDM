@@ -1,4 +1,4 @@
-package com.pdm0126.medpal.data.local.entities
+package com.pdm0126.medpal.data.local.database.entities
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

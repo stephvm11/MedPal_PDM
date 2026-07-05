@@ -39,7 +39,6 @@ fun AppRoot(
             null -> SplashScreen()
             false -> LoginScreen()
             true -> MedPal_App(
-                userName = userName,
                 onLogout = { authViewModel.logout() }
             )
         }

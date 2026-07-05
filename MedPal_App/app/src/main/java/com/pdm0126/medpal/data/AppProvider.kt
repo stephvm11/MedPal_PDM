@@ -1,7 +1,6 @@
 package com.pdm0126.medpal.data
 
 import android.content.Context
-import com.pdm0126.medpal.data.local.AppDatabase
 import com.pdm0126.medpal.data.local.database.AppDataBase
 import com.pdm0126.medpal.data.remote.api.KtorClient
 import com.pdm0126.medpal.data.repositories.repositoryAuth.AuthRepository
@@ -22,11 +21,11 @@ class AppProvider(context: Context){
         }
     }
 
-    private val dataBase: AppDataBase by lazy { AppDatabase.getDatabase(context) }
+    private val dataBase: AppDataBase by lazy { AppDataBase.getDatabase(context) }
     private val authRepository: AuthRepository = AuthRepositoryImpl(
         sessionManager = sessionManager,
-        userDao = database.userDao())
-    private val appointmentDao = appDatabase.appointmentDao()
+        userDao = dataBase.userDao())
+    private val appointmentDao = dataBase.appointmentDao()
 
 
 

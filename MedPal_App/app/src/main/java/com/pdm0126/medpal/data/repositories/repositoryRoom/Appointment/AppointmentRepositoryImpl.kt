@@ -1,8 +1,8 @@
 package com.pdm0126.medpal.data.repositories.repositoryRoom.Appointment
 
-import com.pdm0126.medpal.data.local.dao.AppointmentDao
-import com.pdm0126.medpal.data.local.entities.AppointmentEntity
-import com.pdm0126.medpal.data.local.entities.toModel
+import com.pdm0126.medpal.data.local.database.dao.AppointmentDao
+import com.pdm0126.medpal.data.local.database.entities.AppointmentEntity
+import com.pdm0126.medpal.data.local.database.entities.toModel
 import com.pdm0126.medpal.data.model.Appointment
 import com.pdm0126.medpal.data.model.toEntity
 import kotlinx.coroutines.flow.Flow

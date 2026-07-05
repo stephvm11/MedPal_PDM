@@ -1,7 +1,7 @@
 package com.pdm0126.medpal.data.repositories.repositoryOfflineFirst.Appointment
 
-import com.pdm0126.medpal.data.local.dao.AppointmentDao
-import com.pdm0126.medpal.data.local.entities.toModel
+import com.pdm0126.medpal.data.local.database.dao.AppointmentDao
+import com.pdm0126.medpal.data.local.database.entities.toModel
 import com.pdm0126.medpal.data.model.Appointment
 import com.pdm0126.medpal.data.remote.api.Appointment.AppointmentDto
 import com.pdm0126.medpal.data.remote.api.Appointment.toEntity

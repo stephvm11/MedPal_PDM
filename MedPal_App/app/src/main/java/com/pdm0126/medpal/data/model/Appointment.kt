@@ -1,6 +1,6 @@
 package com.pdm0126.medpal.data.model
 
-import com.pdm0126.medpal.data.local.entities.AppointmentEntity
+import com.pdm0126.medpal.data.local.database.entities.AppointmentEntity
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 

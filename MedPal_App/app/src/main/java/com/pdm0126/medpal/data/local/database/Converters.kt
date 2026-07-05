@@ -1,4 +1,4 @@
-package com.pdm0126.medpal.data.local.converters
+package com.pdm0126.medpal.data.local.database
 
 import androidx.room.TypeConverter
 import kotlinx.datetime.LocalDate

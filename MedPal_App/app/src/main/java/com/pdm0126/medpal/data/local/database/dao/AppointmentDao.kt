@@ -1,4 +1,4 @@
-package com.pdm0126.medpal.data.local.dao
+package com.pdm0126.medpal.data.local.database.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -8,7 +8,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
-import com.pdm0126.medpal.data.local.entities.AppointmentEntity
+import com.pdm0126.medpal.data.local.database.entities.AppointmentEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
