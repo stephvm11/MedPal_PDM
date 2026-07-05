@@ -37,10 +37,11 @@ fun FormDatePicker(
         .toEpochMilli()
 
     OutlinedTextField(
-        value = "${value.dayOfMonth}/${value.monthNumber}/${value.year}",
+        value = "${value.day}/${value.month}/${value.year}",
         onValueChange = {},
         label = { Text(text = label) },
          modifier = Modifier.fillMaxWidth().clickable{showDialog = true},
+        readOnly = true,
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = colorResource(R.color.rosy_brown),
             unfocusedBorderColor = colorResource(R.color.midnight_green).copy(alpha = 0.3f)
