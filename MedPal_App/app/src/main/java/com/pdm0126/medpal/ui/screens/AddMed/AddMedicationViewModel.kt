@@ -18,7 +18,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.daysUntil
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
 
 class AddMedicationViewModel(
     private val repository: AddMedRepository,
@@ -43,10 +48,6 @@ class AddMedicationViewModel(
         }
     }
 
-    /**
-     * 🚀 Guarda secuencialmente el medicamento y opcionalmente su recordatorio,
-     * enlazando la última dosis con el timestamp actual de la creación.
-     */
     fun saveMedication(
         name: String,
         dosage: String,
@@ -54,10 +55,26 @@ class AddMedicationViewModel(
         selectedRouteName: String,
         isReminderEnabled: Boolean,
         reminderTime: LocalTime,
-        selectedFrequency: String
+        selectedFrequency: String,
+        startDate: LocalDate
     ) {
         viewModelScope.launch {
+
+            val actualDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
             val route = _routesList.value.find { it.route == selectedRouteName }
+
+            val daysDifference = actualDate.daysUntil(startDate)
+
+            if (daysDifference < -30) {
+                _event.emit("La fecha de inicio no puede ser mayor a 30 días en el pasado.")
+                return@launch
+            }
+
+            if (daysDifference > 180) {
+                _event.emit("No puedes programar un recordatorio con más de 6 meses de anticipación.")
+                return@launch
+            }
+
 
             if (route == null) {
                 _event.emit("Por favor, selecciona una vía de administración válida.")
@@ -83,17 +100,24 @@ class AddMedicationViewModel(
                         "Semanal" -> 7
                         "Quincenal" -> 15
                         "Mensual" -> 30
-                        else -> 1 // "Personalizado" u otros por defecto actúan diario o según tu lógica
+                        else -> 1
                     }
 
                     val formattedTime = "${reminderTime.hour.toString().padStart(2, '0')}:${
                         reminderTime.minute.toString().padStart(2, '0')
                     }:00"
 
+                    val formattedDateTime = "${startDate}T${
+                        reminderTime.hour.toString().padStart(2, '0')
+                    }:${
+                        reminderTime.minute.toString().padStart(2, '0')
+                    }:00"
+
                     repository.createReminder(
                         time = formattedTime,
                         frequencyDays = frequencyDays,
-                        medicationId = medicationId
+                        medicationId = medicationId,
+                        startDate = formattedDateTime
                     ).onSuccess {
                         _event.emit("¡Medicamento y recordatorio creados con éxito!")
                     }.onFailure { error ->

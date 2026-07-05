@@ -17,7 +17,8 @@ interface AddMedRepository {
     suspend fun createReminder(
         time: String,
         frequencyDays: Int,
-        medicationId: Long
+        medicationId: Long,
+        startDate: String
     ): Result<Unit>
 
 }

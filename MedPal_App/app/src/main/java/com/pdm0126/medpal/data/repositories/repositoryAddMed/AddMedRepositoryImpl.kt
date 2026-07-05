@@ -72,16 +72,16 @@ class AddMedRepositoryImpl (
     override suspend fun createReminder(
         time: String,
         frequencyDays: Int,
-        medicationId: Long
+        medicationId: Long,
+        startDate: String
     ): Result<Unit> {
         return try {
-            val currentTimestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME)
 
             val jsonBody = buildJsonObject {
                 put("hora", time)
                 put("frecuencia_dias", frequencyDays)
                 put("id_medicamento", medicationId)
-                put("ultima_dosis", currentTimestamp)
+                put("ultima_dosis", startDate)
             }
 
             val responseList: List<MedicationReminderDto> = KtorClient.client.post("rest/v1/recordatorio_medicamento") {

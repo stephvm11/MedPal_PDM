@@ -107,7 +107,8 @@ fun AddMedicationScreen(
                                 selectedRouteName = administrationRoute,
                                 isReminderEnabled = isReminderEnabled,
                                 reminderTime = reminderTime,
-                                selectedFrequency = selectedFrequency
+                                selectedFrequency = selectedFrequency,
+                                startDate = startDate
                             )
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.midnight_green)),
