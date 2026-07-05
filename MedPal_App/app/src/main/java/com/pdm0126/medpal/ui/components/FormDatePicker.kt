@@ -15,9 +15,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.colorResource
 import com.pdm0126.medpal.R
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.number
 import kotlinx.datetime.toJavaLocalDate
 import kotlinx.datetime.toKotlinLocalDate
 import java.time.Instant
@@ -31,8 +34,10 @@ fun FormDatePicker(
 ) {
     var showDialog by rememberSaveable { mutableStateOf(false) }
 
+    val focusManager = LocalFocusManager.current
+
     val initialDate = value.toJavaLocalDate()
-        .atStartOfDay(ZoneId.systemDefault())
+        .atStartOfDay(ZoneId.of("UTC"))
         .toInstant()
         .toEpochMilli()
 
@@ -40,8 +45,15 @@ fun FormDatePicker(
         value = "${value.day}/${value.month}/${value.year}",
         onValueChange = {},
         label = { Text(text = label) },
-         modifier = Modifier.fillMaxWidth().clickable{showDialog = true},
         readOnly = true,
+        enabled = true,
+         modifier = Modifier.fillMaxWidth()
+             .onFocusChanged { focusState ->
+             if (focusState.isFocused) {
+                 showDialog = true
+                 focusManager.clearFocus()
+             }
+         },
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = colorResource(R.color.rosy_brown),
             unfocusedBorderColor = colorResource(R.color.midnight_green).copy(alpha = 0.3f)
@@ -58,7 +70,7 @@ fun FormDatePicker(
                 TextButton(
                     onClick = {datePickerState.selectedDateMillis?.let { millis ->
                     val date = Instant.ofEpochMilli(millis)
-                        .atZone(ZoneId.systemDefault())
+                        .atZone(ZoneId.of("UTC"))
                         .toLocalDate()
                         .toKotlinLocalDate()
                     onValueChange(date)}
