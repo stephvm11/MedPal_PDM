@@ -19,8 +19,7 @@ import com.pdm0126.medpal.R
 
 @Composable
 fun AddCard(onAddClick: () -> Unit) {
-    OutlinedCard(onClick = onAddClick, modifier = Modifier
-        .padding(8.dp)
+    OutlinedCard(onClick = onAddClick, modifier = Modifier.padding(start = 16.dp)
         .size(100.dp, 200.dp),
         colors = CardDefaults.outlinedCardColors(containerColor = colorResource(R.color.moss_green)),
         border = BorderStroke(width = 3.dp, colorResource(R.color.beige)),

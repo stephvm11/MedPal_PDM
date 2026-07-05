@@ -21,8 +21,7 @@ fun MedPal_App(
         entryProvider = entryProvider {
             entry<Routes.Appoinments>{
                 AppointmentsHomeScreen(
-                    onLogout = onLogout,
-                    userName = userName
+                    onLogout = onLogout
                 )
             }
         }
