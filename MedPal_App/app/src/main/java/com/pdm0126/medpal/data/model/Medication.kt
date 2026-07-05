@@ -7,7 +7,6 @@ data class Medication(
     val name: String,
     val dosage: String,
     val notes: String? = null,
-    val lastDose: String? = null,
     val administrationRouteId: Long,
     val userId: Long
 )
@@ -18,7 +17,6 @@ fun Medication.toEntity(): MedicationEntity {
         name = name,
         dosage = dosage,
         notes = notes,
-        lastDose = lastDose,
         administrationRouteId = administrationRouteId,
         userId = userId
     )

@@ -40,10 +40,13 @@ fun MedOfDayCard(
     onMarkTaken: () -> Unit,
     modifier: Modifier = Modifier
 ){
+    val containerColor = if (isTakenToday) colorResource(R.color.midnight_green) else Color(0xFFC62828)
+    val contentColor = Color.White
+
     Card(
         shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(
-            containerColor = colorResource(R.color.midnight_green)
+            containerColor = containerColor
         ),
         modifier = modifier.size(width = 160.dp, height = 160.dp)
     ) {
@@ -58,7 +61,7 @@ fun MedOfDayCard(
             Icon(
                 imageVector = if(isTakenToday) Icons.Default.SentimentSatisfiedAlt else Icons.Default.SentimentDissatisfied,
                 contentDescription = "State of the medication intake",
-                tint = Color.Black,
+                tint = contentColor,
                 modifier = Modifier.size(56.dp).padding(top = 4.dp)
             )
 
@@ -68,13 +71,13 @@ fun MedOfDayCard(
             ) {
                 Text(
                     text = name,
-                    color = Color.White,
+                    color =  contentColor,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium
                 )
                 Text(
                     text = dose,
-                    color = Color.White,
+                    color = contentColor,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium
                 )
@@ -87,12 +90,12 @@ fun MedOfDayCard(
             ) {
                 Box(
                     modifier = Modifier
-                        .border(1.dp, Color.White, RoundedCornerShape(50))
+                        .border(1.dp, contentColor, RoundedCornerShape(50))
                         .padding(horizontal = 12.dp, vertical = 4.dp)
                 ){
                     Text(
                         text = hour,
-                        color = Color.White,
+                        color =  contentColor,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold
                     )

@@ -13,8 +13,6 @@ data class MedicationDto(
     val dosage: String,
     @SerialName("nota")
     val notes: String? = null,
-    @SerialName("ultima_dosis")
-    val lastDose: String? = null,
     @SerialName("id_via")
     val administrationRouteId: Long,
     @SerialName("id_usuario")
@@ -26,7 +24,6 @@ fun MedicationDto.toEntity() = MedicationEntity(
     name = name,
     dosage = dosage,
     notes = notes,
-    lastDose = lastDose,
     administrationRouteId = administrationRouteId,
     userId = userId
 )

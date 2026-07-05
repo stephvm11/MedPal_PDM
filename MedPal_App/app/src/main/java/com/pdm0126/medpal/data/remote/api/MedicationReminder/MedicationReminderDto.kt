@@ -11,6 +11,8 @@ data class MedicationReminderDto(
     val time: String,
     @SerialName("frecuencia_dias")
     val frequencyDays: Int,
+    @SerialName("ultima_dosis")
+    val lastDose: String? = null,
     @SerialName("id_medicamento")
     val medicationId: Long
 )
@@ -19,5 +21,6 @@ fun MedicationReminderDto.toEntity() = MedicationReminderEntity(
     id = id,
     time = time,
     frequencyDays = frequencyDays,
+    lastDose = lastDose,
     medicationId = medicationId
 )

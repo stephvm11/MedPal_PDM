@@ -20,4 +20,10 @@ interface MedicationReminderDao {
 
     @Query("DELETE FROM recordatorio_medicamento WHERE id = :id")
     suspend fun deleteReminderById(id: Long)
+
+    @Query("SELECT * FROM recordatorio_medicamento WHERE id = :reminderId LIMIT 1")
+    suspend fun getReminderById(reminderId: Long): MedicationReminderEntity?
+
+    @Query("UPDATE recordatorio_medicamento SET ultima_dosis = :timestamp WHERE id = :reminderId")
+    suspend fun updateLastDoseByReminderId(reminderId: Long, timestamp: String)
 }

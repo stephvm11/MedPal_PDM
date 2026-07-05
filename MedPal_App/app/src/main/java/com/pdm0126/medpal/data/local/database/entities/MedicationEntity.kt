@@ -37,8 +37,6 @@ data class MedicationEntity(
     val dosage: String,
     @ColumnInfo(name = "nota")
     val notes: String? = null,
-    @ColumnInfo(name = "ultima_dosis")
-    val lastDose: String? = null,
     @ColumnInfo(name = "id_via")
     val administrationRouteId: Long,
     @ColumnInfo(name = "id_usuario")
@@ -51,7 +49,6 @@ fun MedicationEntity.toModel(): Medication {
         name = name,
         dosage = dosage,
         notes = notes,
-        lastDose = lastDose,
         administrationRouteId = administrationRouteId,
         userId = userId
     )

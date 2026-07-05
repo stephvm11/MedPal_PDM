@@ -25,6 +25,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import kotlin.collections.forEach
 
 class MedicationViewModel(
     private val repository: MedicationRepository,
@@ -60,12 +61,21 @@ class MedicationViewModel(
                     android.util.Log.d("MEDPAL_DEBUG", "Procesando medicamento: ${relation.medication.name}")
                     val med = relation.medication
 
-                    val lastDoseDateTime = med.lastDose?.let {
-                        try { LocalDateTime.parse(it, DateTimeFormatter.ISO_DATE_TIME) } catch (e: Exception) { null }
-                    }
-                    val lastDoseDate = lastDoseDateTime?.toLocalDate()
-
                     relation.reminders.forEach { reminder ->
+
+                        val lastDoseDateTime = reminder.lastDose?.let {
+                            try { LocalDateTime.parse(it, DateTimeFormatter.ISO_DATE_TIME) } catch (e: Exception) { null }
+                        }
+                        val lastDoseDate = lastDoseDateTime?.toLocalDate()
+
+                        val isTakenToday = lastDoseDate?.isEqual(today) == true
+
+                        val displayTime = if (isTakenToday && lastDoseDateTime != null) {
+                            lastDoseDateTime.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm:ss"))
+                        } else {
+                            reminder.time
+                        }
+
                         allItems.add(
                             AllMedItem(
                                 reminderId = reminder.id,
@@ -80,7 +90,7 @@ class MedicationViewModel(
                                     reminderId = reminder.id,
                                     name = med.name,
                                     dosage = med.dosage,
-                                    time = reminder.time,
+                                    time = displayTime,
                                     isTaken = false
                                 )
                             )
@@ -89,14 +99,12 @@ class MedicationViewModel(
                             val isScheduledForToday = daysSinceLastDose % reminder.frequencyDays == 0L
 
                             if (isScheduledForToday) {
-                                val isTakenToday = lastDoseDate.isEqual(today)
-
                                 dailyItems.add(
                                     MedDay(
                                         reminderId = reminder.id,
                                         name = med.name,
                                         dosage = med.dosage,
-                                        time = reminder.time,
+                                        time = displayTime,
                                         isTaken = isTakenToday
                                     )
                                 )
@@ -127,16 +135,16 @@ class MedicationViewModel(
 
     fun toggleTakeStatus(reminderId: Long) {
         viewModelScope.launch {
-            // 1. Obtenemos el timestamp actual en formato ISO_DATE_TIME (ej: 2026-07-04T15:30:00)
             val currentTimestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME)
 
-            // 2. Buscamos el medicamento dueño de este recordatorio para actualizar su 'ultima_dosis'
-            // NOTA: Aquí idealmente agregarás un método en tu repositorio como:
-            // repository.updateLastDose(reminderId, currentTimestamp)
+            repository.updateLastDose(reminderId, currentTimestamp)
+                .onSuccess {
+                    _event.emit("Medicamento registrado localmente")
+                }
+                .onFailure { error ->
+                    _event.emit("Error local: ${error.localizedMessage}")
+                }
 
-            // Al actualizar la base de datos local, 'loadData()' reacciona al instante,
-            // recalcula los días con la nueva fecha, cambia 'isTaken' a true y la carita se pone feliz.
-            _event.emit("Medicamento registrado localmente")
         }
     }
 

@@ -25,6 +25,10 @@ import kotlinx.coroutines.flow.map
 import com.pdm0126.medpal.data.local.database.entities.MedicationWithReminders
 import com.pdm0126.medpal.data.remote.api.AdministrationRoute.AdministrationRouteRemoteDto
 import com.pdm0126.medpal.data.remote.api.AdministrationRoute.toEntity
+import io.ktor.client.request.patch
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MedicationRepositoryImpl (
     private val medicationDao: MedicationDao,
@@ -133,6 +137,29 @@ class MedicationRepositoryImpl (
             reminderDao.deleteReminderById(id)
             Result.success(Unit)
         } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun updateLastDose(reminderId: Long, timestamp: String): Result<Unit> {
+        return try {
+            reminderDao.updateLastDoseByReminderId(reminderId, timestamp)
+
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    KtorClient.client.patch("rest/v1/recordatorio_medicamento") {
+                        parameter("id", "eq.$reminderId")
+                        contentType(ContentType.Application.Json)
+                        setBody(mapOf("ultima_dosis" to timestamp))
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("MEDPAL_DEBUG", "Fallo el parche remoto (Modo Offline activo)", e)
+                }
+            }
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            android.util.Log.e("MEDPAL_DEBUG", "Error crítico al escribir en Room", e)
             Result.failure(e)
         }
     }

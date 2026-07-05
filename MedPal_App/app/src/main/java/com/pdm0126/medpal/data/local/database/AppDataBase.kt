@@ -20,7 +20,7 @@ import com.pdm0126.medpal.data.local.database.entities.AdministrationRouteEntity
         MedicationEntity::class,
         MedicationReminderEntity::class
     ],
-    version = 7,
+    version = 8,
 exportSchema = false
 )
 abstract class AppDataBase : RoomDatabase() {

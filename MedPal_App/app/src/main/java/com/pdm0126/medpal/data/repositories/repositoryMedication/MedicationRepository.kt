@@ -28,4 +28,6 @@ interface MedicationRepository {
     ): Result<Unit>
 
     suspend fun deleteReminder(id: Long): Result<Unit>
+
+    suspend fun updateLastDose(reminderId: Long, timestamp: String): Result<Unit>
 }
