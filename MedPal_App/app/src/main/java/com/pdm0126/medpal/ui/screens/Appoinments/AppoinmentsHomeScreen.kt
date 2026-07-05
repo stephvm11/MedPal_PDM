@@ -2,12 +2,9 @@ package com.pdm0126.medpal.ui.screens.Appoinments
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.browser.R
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,7 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -46,7 +42,6 @@ import com.pdm0126.medpal.ui.components.AddCard
 import com.pdm0126.medpal.ui.components.ClosestAppoinment
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
-import kotlinx.datetime.Month
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.daysUntil
 import kotlinx.datetime.todayIn
@@ -60,6 +55,8 @@ import kotlin.math.abs
 fun AppointmentsHomeScreen(
     viewModel: AppointmentViewModel = viewModel(factory = AppointmentViewModel.Factory),
     onLogout: () -> Unit,
+    currentRoute: String,
+    onNavigateToItemClick:(String) -> Unit
 ) {
     val appointments by viewModel.appointments.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsState()
@@ -70,6 +67,8 @@ fun AppointmentsHomeScreen(
 
     AppScaffold(
         DateUtils.format(getCurrentDate()),
+        currentRoute,
+        onNavigateToItemClick,
         TopBarCases.HOME,
         {},
         { onLogout() }) { paddingValues ->

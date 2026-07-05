@@ -10,4 +10,7 @@ sealed class Routes : NavKey {
 
     @Serializable
     data object Appoinments : Routes()
+
+    @Serializable
+    data object Meds : Routes()
 }

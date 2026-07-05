@@ -11,6 +11,8 @@ import androidx.compose.runtime.setValue
 @Composable
 fun AppScaffold(
     title: String,
+    currentRoute: String,
+    onNavigationItemClick: (String) -> Unit,
     topBarScreenCase: TopBarCases = TopBarCases.DEFAULT,
     onCalendarClick: () -> Unit = {},
     onUserClick: () -> Unit = {},
@@ -22,7 +24,6 @@ fun AppScaffold(
 
     content: @Composable (PaddingValues) -> Unit
 ) {
-    var currentRoute by rememberSaveable { mutableStateOf("Citas y Examenes") }
 
     Scaffold(
         topBar = {
@@ -39,7 +40,8 @@ fun AppScaffold(
         floatingActionButton = floatingActionButton,
 
         bottomBar = {
-            CustomNavigationBar(currentRoute = currentRoute, onItemClick = {currentRoute = it})
+            CustomNavigationBar(
+                currentRoute = currentRoute, onItemClick = onNavigationItemClick)
         }
     ) { paddingValues ->
         content(paddingValues)
