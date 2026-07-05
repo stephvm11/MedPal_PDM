@@ -3,6 +3,8 @@ package com.pdm0126.medpal.data
 import android.content.Context
 import com.pdm0126.medpal.data.local.database.AppDataBase
 import com.pdm0126.medpal.data.remote.api.KtorClient
+import com.pdm0126.medpal.data.repositories.repositoryAddMed.AddMedRepository
+import com.pdm0126.medpal.data.repositories.repositoryAddMed.AddMedRepositoryImpl
 import com.pdm0126.medpal.data.repositories.repositoryAuth.AuthRepository
 import com.pdm0126.medpal.data.repositories.repositoryAuth.AuthRepositoryImpl
 import com.pdm0126.medpal.data.repositories.repositoryMedication.MedicationRepository
@@ -33,12 +35,23 @@ class AppProvider(context: Context){
         reminderDao = database.medicationReminderDao(),
         administrationRouteDao = database.administrationRouteDao()
     )
+
+    private val addMedRepository: AddMedRepository = AddMedRepositoryImpl(
+        administrationRouteDao = database.administrationRouteDao(),
+        medicationDao = database.medicationDao(),
+        medicationReminderDao = database.medicationReminderDao()
+    )
+
     fun provideAuthRepository(): AuthRepository {
         return authRepository
     }
 
     fun provideMedicationRepository(): MedicationRepository{
         return medicationRepository
+    }
+
+    fun provideAddMedRepository(): AddMedRepository {
+        return addMedRepository
     }
 
 }

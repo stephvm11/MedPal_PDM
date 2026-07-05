@@ -37,7 +37,7 @@ fun FormDatePicker(
     val focusManager = LocalFocusManager.current
 
     val initialDate = value.toJavaLocalDate()
-        .atStartOfDay(ZoneId.systemDefault())
+        .atStartOfDay(ZoneId.of("UTC"))
         .toInstant()
         .toEpochMilli()
 
@@ -70,7 +70,7 @@ fun FormDatePicker(
                 TextButton(
                     onClick = {datePickerState.selectedDateMillis?.let { millis ->
                     val date = Instant.ofEpochMilli(millis)
-                        .atZone(ZoneId.systemDefault())
+                        .atZone(ZoneId.of("UTC"))
                         .toLocalDate()
                         .toKotlinLocalDate()
                     onValueChange(date)}

@@ -1,5 +1,6 @@
 package com.pdm0126.medpal.ui.screens.AddMed
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,6 +47,10 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pdm0126.medpal.ui.components.FormRoutePicker
 import com.pdm0126.medpal.ui.components.FormTimePicker
 import com.pdm0126.medpal.ui.components.FrequencyChip
@@ -54,8 +59,10 @@ import com.pdm0126.medpal.ui.components.FrequencyChip
 @Composable
 fun AddMedicationScreen(
     onCancel: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: AddMedicationViewModel = viewModel(factory = AddMedicationViewModel.Factory)
 ){
+    val context = LocalContext.current
     val now = remember { Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()) }
 
     var name by remember { mutableStateOf("") }
@@ -69,7 +76,17 @@ fun AddMedicationScreen(
     var startDate by remember { mutableStateOf(now.date) }
     var reminderTime by remember { mutableStateOf(LocalTime(8, 0)) }
 
-    val routesOptions = listOf("Oral", "Cutánea", "Inhalatoria", "Intravenosa", "Oftálmica") // Ejemplo estático tempora
+    val routes by viewModel.routesList.collectAsState()
+    val routeNamesList = remember(routes) { routes.map { it.route } }
+
+    LaunchedEffect(key1 = true) {
+        viewModel.event.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            if (message.contains("éxito") || message.contains("correctamente")) {
+                onCancel()
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -82,7 +99,17 @@ fun AddMedicationScreen(
                 },
                 actions = {
                     Button(
-                        onClick = { /* TODO: Guardar medicamento con repositorio */ },
+                        onClick = {
+                            viewModel.saveMedication(
+                                name = name,
+                                dosage = dose,
+                                note = note,
+                                selectedRouteName = administrationRoute,
+                                isReminderEnabled = isReminderEnabled,
+                                reminderTime = reminderTime,
+                                selectedFrequency = selectedFrequency
+                            )
+                        },
                         colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.midnight_green)),
                         shape = RoundedCornerShape(50),
                         modifier = Modifier.padding(end = 8.dp)
@@ -121,7 +148,7 @@ fun AddMedicationScreen(
                 }
                 Box(modifier = Modifier.weight(1.2f)){
                     FormRoutePicker(
-                        options = routesOptions,
+                        options = routeNamesList,
                         selectedOption = administrationRoute,
                         onOptionSelected = { administrationRoute = it },
                         label = "Vía"
