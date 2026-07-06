@@ -3,68 +3,65 @@ package com.pdm0126.medpal.data
 import android.content.Context
 import com.pdm0126.medpal.data.local.database.AppDataBase
 import com.pdm0126.medpal.data.remote.api.KtorClient
+import com.pdm0126.medpal.data.repositories.repositoryAddAppointment.AddAppointmentRepository
+import com.pdm0126.medpal.data.repositories.repositoryAddAppointment.AddAppointmentRepositoryImpl
 import com.pdm0126.medpal.data.repositories.repositoryAddMed.AddMedRepository
 import com.pdm0126.medpal.data.repositories.repositoryAddMed.AddMedRepositoryImpl
 import com.pdm0126.medpal.data.repositories.repositoryAuth.AuthRepository
 import com.pdm0126.medpal.data.repositories.repositoryAuth.AuthRepositoryImpl
 import com.pdm0126.medpal.data.repositories.repositoryMedication.MedicationRepository
 import com.pdm0126.medpal.data.repositories.repositoryMedication.MedicationRepositoryImpl
-import com.pdm0126.medpal.data.repositories.repositoryOfflineFirst.Appointment.AppointmentOfflineFirstRepository
-import com.pdm0126.medpal.data.repositories.repositoryOfflineFirst.Appointment.AppointmentOfflineFirstRepositoryImpl
+import com.pdm0126.medpal.data.repositories.repositoryOfflineFirst.Appointment.AppointmentRepository
+import com.pdm0126.medpal.data.repositories.repositoryOfflineFirst.Appointment.AppointmentRepositoryImpl
 import com.pdm0126.medpal.data.session.SessionManager
 import kotlinx.coroutines.flow.first
 
-class AppProvider(context: Context){
+class AppProvider(context: Context) {
     private val sessionManager = SessionManager(context)
-    suspend fun loadSavedSession(){
+    suspend fun loadSavedSession() {
         val savedToken = sessionManager.accessToken.first()
-        if(savedToken != null ){
+        if (savedToken != null) {
             KtorClient.accessToken = savedToken
         }
     }
 
-    private val dataBase: AppDataBase by lazy { AppDataBase.getDatabase(context) }
-    private val authRepository: AuthRepository = AuthRepositoryImpl(
-        sessionManager = sessionManager,
-        userDao = dataBase.userDao())
-    private val appointmentDao = dataBase.appointmentDao()
-
-
-
-
-
-    private val appointmentOfflineFirstRepository: AppointmentOfflineFirstRepository =
-        AppointmentOfflineFirstRepositoryImpl(appointmentDao)
-
     private val database: AppDataBase by lazy {
         AppDataBase.getDatabase(context)
     }
-
-
-
+    private val authRepository: AuthRepository = AuthRepositoryImpl(
+        sessionManager = sessionManager,
+        userDao = database.userDao()
+    )
+    private val appointmentRepository: AppointmentRepository =
+        AppointmentRepositoryImpl(
+            appointmentDao = database.appointmentDao()
+        )
+    private val addAppointmentRepository: AddAppointmentRepository = AddAppointmentRepositoryImpl(
+        appointmentDao = database.appointmentDao(),
+        appointmentReminderDao = database.appointmentReminderDao()
+    )
     private val medicationRepository: MedicationRepository = MedicationRepositoryImpl(
         medicationDao = database.medicationDao(),
         reminderDao = database.medicationReminderDao(),
         administrationRouteDao = database.administrationRouteDao()
     )
-
     private val addMedRepository: AddMedRepository = AddMedRepositoryImpl(
         administrationRouteDao = database.administrationRouteDao(),
         medicationDao = database.medicationDao(),
         medicationReminderDao = database.medicationReminderDao()
     )
-
     fun provideAuthRepository(): AuthRepository {
         return authRepository
     }
-
-    fun provideMedicationRepository(): MedicationRepository{
+    fun provideMedicationRepository(): MedicationRepository {
         return medicationRepository
     }
-    fun provideAppointmentOfflineFirstRepositoy(): AppointmentOfflineFirstRepository{
-        return appointmentOfflineFirstRepository
+    fun provideAppointmentRepository(): AppointmentRepository {
+        return appointmentRepository
     }
-
+    fun provideAddAppointmentRepository(): AddAppointmentRepository {
+        return addAppointmentRepository
+    }
     fun provideAddMedRepository(): AddMedRepository {
         return addMedRepository
     }

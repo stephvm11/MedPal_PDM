@@ -5,6 +5,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.pdm0126.medpal.data.model.AppointmentReminder
 import kotlinx.datetime.LocalTime
 
 @Entity(
@@ -27,12 +28,22 @@ data class AppointmentReminderEntity(
     val startDay: Int,
     @ColumnInfo(name = "frecuencia")
     val frequency: String,
-    @ColumnInfo(name = "time")
+    @ColumnInfo(name = "hora")
     val time: LocalTime,
     @ColumnInfo(name = "id_cita")
-    val appointmentId: Long,
+    val appointmentId: Long?,
     @ColumnInfo(name = "id_examen")
-    val examId: Long
+    val examId: Long?
 )
 
-fun AppointmentReminderEntity.toModel()
+fun AppointmentReminderEntity.toModel(): AppointmentReminder {
+    return AppointmentReminder(
+        id = id,
+        startDay = startDay,
+        frequency = frequency,
+        time = time,
+        appointmentId = appointmentId,
+        examId = examId
+
+    )
+}

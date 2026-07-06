@@ -31,6 +31,7 @@ fun FormDatePicker(
     value: LocalDate,
     onValueChange: (LocalDate) -> Unit,
     label: String,
+    modifier: Modifier = Modifier
 ) {
     var showDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -47,7 +48,7 @@ fun FormDatePicker(
         label = { Text(text = label) },
         readOnly = true,
         enabled = true,
-         modifier = Modifier.fillMaxWidth()
+         modifier = Modifier
              .onFocusChanged { focusState ->
              if (focusState.isFocused) {
                  showDialog = true

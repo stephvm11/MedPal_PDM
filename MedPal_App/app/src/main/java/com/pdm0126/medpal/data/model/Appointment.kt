@@ -11,7 +11,8 @@ data class Appointment(
     val place: String,
     val date: LocalDate,
     val time: LocalTime,
-    val userId: Int
+    val status: Boolean = false,
+    val userId: Long
 )
 
 fun Appointment.toEntity(): AppointmentEntity{
@@ -22,6 +23,7 @@ fun Appointment.toEntity(): AppointmentEntity{
         place = place,
         date = date,
         time = time,
-        userId = userId
+        userId = userId,
+        status = status
     )
 }

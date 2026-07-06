@@ -37,20 +37,30 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.pdm0126.medpal.R
+import com.pdm0126.medpal.data.model.Appointment
+import com.pdm0126.medpal.ui.screens.Appoinments.formatDate
+import com.pdm0126.medpal.ui.screens.Appoinments.formatTime
 
 @Composable
-fun AppoinmentCard(title: String, specialist: String, place: String, date: String, time: String) {
-    var isDone by rememberSaveable { mutableStateOf(false) }
+fun AppoinmentCard(
+    appointment: Appointment,
+    onToggleComplete: (Long) -> Unit
+) {
+    val isDone = appointment.status
+
     OutlinedCard(
         modifier = Modifier
-            .padding(8.dp)
             .size(200.dp, 200.dp),
         colors = CardDefaults.outlinedCardColors(
-            containerColor = colorResource(R.color.moss_green)
+            containerColor = if (isDone) colorResource(R.color.moss_green).copy(alpha = 0.5f)
+            else
+                colorResource(R.color.moss_green)
         ),
-        border = BorderStroke(width = 3.dp, colorResource(R.color.beige)),
+        border = BorderStroke(
+            width = 3.dp,
+            color = if (isDone) colorResource(R.color.midnight_green) else colorResource(R.color.beige)
+        ),
         shape = CardDefaults.outlinedShape
-
     ) {
         Column(
             modifier = Modifier
@@ -59,7 +69,7 @@ fun AppoinmentCard(title: String, specialist: String, place: String, date: Strin
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = title,
+                    text = appointment.title,
                     style = MaterialTheme.typography.titleMedium,
                     color = colorResource(R.color.beige),
                     fontWeight = FontWeight.SemiBold,
@@ -69,7 +79,7 @@ fun AppoinmentCard(title: String, specialist: String, place: String, date: Strin
                     textAlign = TextAlign.Center
                 )
                 Text(
-                    text = specialist,
+                    text = appointment.specialist,
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.White,
                     maxLines = 1,
@@ -95,7 +105,7 @@ fun AppoinmentCard(title: String, specialist: String, place: String, date: Strin
                     )
                     Spacer(modifier = Modifier.width(5.dp))
                     Text(
-                        text = place,
+                        text = appointment.place,
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.White,
                         maxLines = 1,
@@ -116,40 +126,32 @@ fun AppoinmentCard(title: String, specialist: String, place: String, date: Strin
                     )
                     Spacer(modifier = Modifier.width(5.dp))
                     Text(
-                        text = date,
+                        text = formatDate(appointment.date),
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.White
                     )
                 }
                 Text(
-                    text = time,
+                    text = formatTime(appointment.time),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
                     modifier = Modifier.padding(start = 25.dp)
                 )
                 IconButton(
-                    onClick = { isDone = !isDone },
+                    onClick = { onToggleComplete(appointment.id) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .align(Alignment.End)
                 ) {
-                    IconButton(onClick = {isDone = !isDone},
-                        modifier = Modifier.size(45.dp)) {
-                        Icon(imageVector = if (isDone) Icons.Filled.CheckBox else Icons.Outlined.CheckBox,
-                            contentDescription = "Marcar realizada",
-                            tint = colorResource(R.color.beige),
-                            modifier = Modifier.size(40.dp))
-                    }
+                    Icon(
+                        imageVector = if (isDone) Icons.Filled.CheckBox else Icons.Outlined.CheckBox,
+                        contentDescription = if (isDone) "Marcar como pendiente" else "Marcar como completada",
+                        tint = colorResource(R.color.beige),
+                        modifier = Modifier.size(40.dp)
+                    )
                 }
             }
         }
-
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun AppoinCardPre() {
-    AppoinmentCard("Cita del corazon", "Dr.Pepe", "Hospital Rosales", "12/2/26", "13:30")
 }

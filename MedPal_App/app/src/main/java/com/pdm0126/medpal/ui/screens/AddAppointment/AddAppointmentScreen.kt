@@ -1,5 +1,6 @@
 package com.pdm0126.medpal.ui.screens.AddAppointment
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,8 +19,12 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -28,9 +33,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pdm0126.medpal.R
 import com.pdm0126.medpal.data.model.FrequencyReminder
 import com.pdm0126.medpal.ui.components.AppScaffold
@@ -44,32 +52,62 @@ import com.pdm0126.medpal.ui.components.TopBarCases
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlinx.serialization.internal.missingFieldExceptionWithNewMessage
 import kotlin.time.Clock
 
 @Composable
 fun AddAppointmentScreen(
+    viewModel: AddAppointmentViewModel = viewModel(factory = AddAppointmentViewModel.Factory),
     onSave: () -> Unit,
     onClose: () -> Unit,
 ) {
+
+    val context = LocalContext.current
     val now = remember { Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()) }
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
     var title by remember { mutableStateOf("") }
     var specialist by remember { mutableStateOf("") }
     var place by remember { mutableStateOf("") }
     var date by remember { mutableStateOf(now.date) }
     var time by remember { mutableStateOf(now.time) }
-    var reminderTime by remember {mutableStateOf(now.time)}
+    var reminderTime by remember { mutableStateOf(now.time) }
 
     var isReminderEnabled by remember { mutableStateOf(false) }
     var selectedFrequency by remember { mutableStateOf(FrequencyReminder.DIARIO) }
     var startDay by remember { mutableIntStateOf(7) }
 
+    val isFormValid = title.isNotBlank() && specialist.isNotBlank() && place.isNotBlank()
+
+    LaunchedEffect(Unit) {
+        viewModel.event.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
+
     AppScaffold(
         "Nueva cita",
         topBarScreenCase = TopBarCases.FORM,
         false,
-        onSaveClick = onSave,
-        onCloseClick = onClose) { paddingValues ->
+        isSaveEnabled = isFormValid && !isLoading,
+        onSaveClick = {
+            if (isFormValid && !isLoading) {
+                viewModel.createAppointment(
+                    title = title,
+                    specialist = specialist,
+                    place = place,
+                    date = date,
+                    time = time,
+                    hasReminder = isReminderEnabled,
+                    reminderTime = if (isReminderEnabled) reminderTime else null,
+                    frequency = if (isReminderEnabled) selectedFrequency else null,
+                    startDay = if (isReminderEnabled) startDay else null,
+                    onSuccess = onSave
+                )
+            }
+        },
+        onCloseClick = onClose
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -82,7 +120,8 @@ fun AddAppointmentScreen(
             FormTextField(
                 value = title,
                 onValueChange = { title = it },
-                label = "Titulo de la cita médica"
+                label = "Titulo de la cita médica",
+                placeholder = "Ej. Consulta con cardiólogo"
             )
             FormTextField(
                 value = specialist,
@@ -103,12 +142,14 @@ fun AddAppointmentScreen(
                 FormDatePicker(
                     value = date,
                     onValueChange = { date = it },
-                    label = "Fecha de la cita"
+                    label = "Fecha de la cita",
+                    modifier = Modifier.weight(1f)
                 )
                 FormTimePicker(
                     value = time,
                     onValueChange = { time = it },
-                    label = "Hora de la cita"
+                    label = "Hora de la cita",
+                    modifier = Modifier.weight(1f)
                 )
             }
 
@@ -144,10 +185,13 @@ fun AddAppointmentScreen(
                 }
             }
             AnimatedVisibility(visible = isReminderEnabled) {
-                Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
                     FormTimePicker(
                         value = reminderTime,
-                        onValueChange = {reminderTime = it},
+                        onValueChange = { reminderTime = it },
                         label = "Hora de recodatorio"
                     )
                     Text(
@@ -157,12 +201,12 @@ fun AddAppointmentScreen(
                     )
                     DaysSelector(
                         selectedDays = startDay,
-                        onDaysSelected = {startDay = it}
+                        onDaysSelected = { startDay = it }
                     )
 
                     FrequencySelector(
                         selectedFrequency = selectedFrequency,
-                        onFrequencySelected = {selectedFrequency = it},
+                        onFrequencySelected = { selectedFrequency = it },
                         frequencies = listOf(
                             FrequencyReminder.DIARIO,
                             FrequencyReminder.CADA_3_DIAS,

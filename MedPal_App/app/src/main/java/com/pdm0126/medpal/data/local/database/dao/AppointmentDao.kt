@@ -9,6 +9,7 @@ import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
 import com.pdm0126.medpal.data.local.database.entities.AppointmentEntity
+import com.pdm0126.medpal.data.local.database.entities.AppointmentWithReminders
 import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
@@ -17,37 +18,43 @@ import kotlinx.datetime.LocalTime
 interface AppointmentDao {
 
     @Transaction
-    @Query("SELECT * FROM appointments ORDER BY date ASC, time ASC")
-    fun getAppointments(): Flow<List<AppointmentEntity>>
+    @Query("SELECT * FROM cita WHERE id_usuario = :userId ORDER BY fecha ASC, hora ASC")
+    fun getAppointmentsWithRemindersByUser(userId: Long): Flow<List<AppointmentWithReminders>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAppointment(appointment: AppointmentEntity)
+    @Query("SELECT * FROM cita WHERE id_usuario = :userId AND estado_finalizacion = 'false' ORDER BY fecha ASC, hora ASC")
+    fun getPendingAppointmentsWithReminderByUser(userId: Long): Flow<List<AppointmentWithReminders>>
 
-    @Delete
-    suspend fun deleteAppointment(appointment: AppointmentEntity)
+    @Query("SELECT * FROM cita WHERE id_usuario = :userId AND estado_finalizacion = 'true' ORDER BY fecha ASC, hora ASC")
+    fun getCompletedAppointmentsWithReminderByUser(userId: Long): Flow<List<AppointmentWithReminders>>
 
-    @Update
-    suspend fun updateAppointment(appointment: AppointmentEntity)
+    @Query("SELECT * FROM cita WHERE id_usuario = :userId AND fecha = :date AND estado_finalizacion = 'false' ORDER BY hora ASC")
+    fun getTodayAppointments(userId: Long, date: LocalDate): Flow<List<AppointmentEntity>>
+
+    @Query(
+        """
+        SELECT * FROM cita 
+        WHERE id_usuario = :userId 
+        AND fecha BETWEEN :startDate AND :endDate 
+        AND estado_finalizacion = 'false'
+        ORDER BY fecha ASC, hora ASC
+    """
+    )
+    fun getWeeklyAppointments(
+        userId: Long,
+        startDate: LocalDate,
+        endDate: LocalDate
+    ): Flow<List<AppointmentEntity>>
+
+    @Query("UPDATE cita SET estado_finalizacion = 'true' WHERE id = :appointmentId")
+    suspend fun completeAppointment(appointmentId: Long)
+
+    @Query("UPDATE cita SET estado_finalizacion = 'false' WHERE id = :appointmentId")
+    suspend fun uncompletedAppointment(appointmentId: Long)
 
     @Upsert
     suspend fun upsertAppointment(appointment: AppointmentEntity)
 
     @Upsert
     suspend fun upsertAppointments(appointment: List<AppointmentEntity>)
-
-    @Query("DELETE FROM appointments WHERE id =:id")
-    suspend fun deleteAppointmentById(id: Int)
-
-
-    @Query("UPDATE appointments SET title = :title, specialist = :specialist, place = :place, date = :date, time = :time where id = :id")
-    suspend fun updateAppointment(
-        title: String,
-        specialist: String,
-        place: String,
-        date: LocalDate,
-        time: LocalTime,
-        id: Int
-    )
-
 
 }

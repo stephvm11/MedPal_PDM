@@ -10,11 +10,13 @@ import com.pdm0126.medpal.data.local.database.dao.MedicationReminderDao
 import com.pdm0126.medpal.data.local.database.dao.UserDao
 import com.pdm0126.medpal.data.local.database.dao.AdministrationRouteDao
 import com.pdm0126.medpal.data.local.database.dao.AppointmentDao
+import com.pdm0126.medpal.data.local.database.dao.AppointmentReminderDao
 import com.pdm0126.medpal.data.local.database.entities.MedicationEntity
 import com.pdm0126.medpal.data.local.database.entities.MedicationReminderEntity
 import com.pdm0126.medpal.data.local.database.entities.UserEntity
 import com.pdm0126.medpal.data.local.database.entities.AdministrationRouteEntity
 import com.pdm0126.medpal.data.local.database.entities.AppointmentEntity
+import com.pdm0126.medpal.data.local.database.entities.AppointmentReminderEntity
 
 @Database(
     entities = [
@@ -22,9 +24,10 @@ import com.pdm0126.medpal.data.local.database.entities.AppointmentEntity
         AdministrationRouteEntity::class,
         MedicationEntity::class,
         MedicationReminderEntity::class,
-        AppointmentEntity::class
+        AppointmentEntity::class,
+        AppointmentReminderEntity::class
     ],
-    version = 10,
+    version = 11,
 exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -35,6 +38,7 @@ abstract class AppDataBase : RoomDatabase() {
     abstract fun medicationDao(): MedicationDao
     abstract fun medicationReminderDao(): MedicationReminderDao
     abstract fun appointmentDao(): AppointmentDao
+    abstract fun appointmentReminderDao(): AppointmentReminderDao
     companion object {
         @Volatile
         private var INSTANCE: AppDataBase? = null

@@ -21,7 +21,8 @@ import kotlinx.datetime.LocalTime
         )
     ],
     indices = [
-        Index("id_usuario")
+        Index("id_usuario"),
+        Index("estado_finalizacion")
     ]
 )
 data class AppointmentEntity(
@@ -38,7 +39,9 @@ data class AppointmentEntity(
     @ColumnInfo(name = "hora")
     val time: LocalTime,
     @ColumnInfo(name = "id_usuario")
-    val userId: Int
+    val userId: Long,
+    @ColumnInfo(name = "estado_finalizacion")
+    val status: Boolean = false
 )
 
 fun AppointmentEntity.toModel(): Appointment {
@@ -49,6 +52,7 @@ fun AppointmentEntity.toModel(): Appointment {
         place = place,
         date = date,
         time = time,
+        status = status,
         userId = userId
     )
 }

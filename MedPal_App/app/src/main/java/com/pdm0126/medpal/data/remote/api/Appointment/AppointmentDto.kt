@@ -9,35 +9,45 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class AppointmentDto(
-    val id: Int,
-    @SerialName("id_usuario") val idUsuario: Int,
-    val titulo: String,
-    val especialista: String,
-    val lugar: String,
-    val fecha: LocalDate,
-    val hora: LocalTime
+    val id: Long,
+    @SerialName("id_usuario")
+    val userId: Long,
+    @SerialName("titulo")
+    val title: String,
+    @SerialName("especialista")
+    val specialist: String,
+    @SerialName("lugar")
+    val place: String,
+    @SerialName("fecha")
+    val date: LocalDate,
+    @SerialName("hora")
+    val time: LocalTime,
+    @SerialName("estado_finaliacion")
+    val status: Boolean = false
 )
 
 fun AppointmentDto.toModel(): Appointment{
     return Appointment(
         id = id,
-        title = titulo,
-        specialist = especialista,
-        place = lugar,
-        date = fecha,
-        time = hora,
-        userId = idUsuario
+        title = title,
+        specialist = specialist,
+        place = place,
+        date = date,
+        time = time,
+        status = status,
+        userId = userId
     )
 }
 
 fun AppointmentDto.toEntity(): AppointmentEntity{
     return AppointmentEntity(
         id = id,
-        title = titulo,
-        specialist = especialista,
-        place = lugar,
-        date = fecha,
-        time = hora,
-        userId = idUsuario
+        title = title,
+        specialist = specialist,
+        place = place,
+        date = date,
+        time = time,
+        status = status,
+        userId = userId
     )
 }

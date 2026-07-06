@@ -44,7 +44,8 @@ fun CustomTopBar(
     onCalendarClick: () -> Unit = {},
     onSaveClick: () -> Unit = {},
     onCloseClick: () -> Unit = {},
-    onBackClick: () -> Unit = {}
+    onBackClick: () -> Unit = {},
+    isSaveEnabled: Boolean = true
 ) {
     Box(
         modifier = Modifier.fillMaxWidth()

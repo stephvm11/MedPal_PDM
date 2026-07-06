@@ -30,7 +30,8 @@ import kotlinx.datetime.LocalTime
 fun FormTimePicker(
     value: LocalTime,
     onValueChange: (LocalTime) -> Unit,
-    label: String
+    label: String,
+    modifier: Modifier = Modifier
 ) {
     var showDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -44,7 +45,6 @@ fun FormTimePicker(
 
     Box(
         modifier = Modifier
-            .fillMaxWidth()
             .clickable(
                 onClick = { showDialog = true },
                 interactionSource = remember { MutableInteractionSource() },

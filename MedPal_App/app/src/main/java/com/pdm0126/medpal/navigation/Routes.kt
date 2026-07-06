@@ -16,4 +16,7 @@ sealed class Routes : NavKey {
 
     @Serializable
     data object MedsAddForm : Routes()
+
+    @Serializable
+    data object AddAppointmentForm : Routes()
 }
