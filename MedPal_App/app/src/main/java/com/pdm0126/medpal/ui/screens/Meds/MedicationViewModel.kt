@@ -34,6 +34,12 @@ class MedicationViewModel(
     private val _generalMedList = MutableStateFlow(MedGeneral())
     val generalMedList = _generalMedList.asStateFlow()
 
+    private val _refreshing = MutableStateFlow<Boolean>(false)
+    val refreshing = _refreshing.asStateFlow()
+
+    private val _error = MutableStateFlow<String?>(null)
+    val error = _error.asStateFlow()
+
     private val _event = MutableSharedFlow<String>()
     val event = _event.asSharedFlow()
 
@@ -81,7 +87,9 @@ class MedicationViewModel(
 
                             val localTime = try {
                                 LocalTime.parse(reminder.time.take(5))
-                            } catch (e: Exception) { null }
+                            } catch (e: Exception) {
+                                null
+                            }
 
                             val isTakenToday = if (lastDoseDate?.isEqual(today) == true) {
                                 if (lastDoseDateTime != null && localTime != null) {
@@ -158,10 +166,17 @@ class MedicationViewModel(
 
     fun refreshFromServer() {
         viewModelScope.launch {
-            repository.refresh(userId).onFailure { error ->
-                android.util.Log.e("MEDPAL_DEBUG", "¡La descarga de Supabase falló!", error)
-                _event.emit("Error de sincronización: ${error.localizedMessage}")
-            }
+            _error.value = null
+            _refreshing.value = true
+
+            repository.refresh(userId)
+                .onSuccess {
+                }
+                .onFailure { error ->
+                    _error.value = "Error de sincronización: ${error.localizedMessage}"
+                }
+
+            _refreshing.value = false
         }
     }
 
