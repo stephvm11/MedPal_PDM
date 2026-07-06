@@ -152,7 +152,7 @@ class MedicationViewModel(
                 .onSuccess {
                 }
                 .onFailure { error ->
-                    _error.value = "Error de sincronización: ${error.localizedMessage}"
+                    _event.emit("Error de sincronización!! Si quieres jala la pantalla para intentarlo otra vez")
                 }
 
             _refreshing.value = false
@@ -168,7 +168,7 @@ class MedicationViewModel(
                     _event.emit("Medicamento registrado localmente")
                 }
                 .onFailure { error ->
-                    _event.emit("Error local: ${error.localizedMessage}")
+                    _event.emit("Error local, no se pudo crear tu medicamento")
                 }
 
         }

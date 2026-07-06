@@ -129,7 +129,7 @@ class AddMedicationViewModel(
                         startDate = formattedDateTime
                         ).onFailure { error ->
                         succesReminders = false
-                        errorReminders = error.localizedMessage ?: "Error desconocido"
+                        errorReminders =  "Error al crear tus recordatorios"
                     }
                     }
                     if (succesReminders) {
@@ -140,7 +140,7 @@ class AddMedicationViewModel(
                 }
 
             }.onFailure { error ->
-                _event.emit("Error al guardar el medicamento: ${error.localizedMessage}")
+                _event.emit("Error al guardar el medicamento, intentalo mas tarde")
             }
         }
     }
