@@ -46,6 +46,7 @@ import com.pdm0126.medpal.ui.components.AppScaffold
 import com.pdm0126.medpal.ui.components.MedOfDayCard
 import com.pdm0126.medpal.ui.components.TopBarCases
 import androidx.compose.ui.platform.LocalContext
+import com.pdm0126.medpal.data.notifications.AlertGlobalEvent
 
 @Composable
 fun MedsHomeScreen(
@@ -65,6 +66,11 @@ fun MedsHomeScreen(
             if (message.contains("Error")) {
                 Toast.makeText(context, message, Toast.LENGTH_LONG).show()
             }
+        }
+    }
+    LaunchedEffect(Unit) {
+        AlertGlobalEvent.confirmations.collect { reminderId ->
+            viewModel.toggleTakeStatus(reminderId)
         }
     }
 
