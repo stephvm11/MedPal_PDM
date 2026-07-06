@@ -69,7 +69,6 @@ fun AddMedicationScreen(
     viewModel: AddMedicationViewModel = viewModel(factory = AddMedicationViewModel.Factory)
 ){
     val context = LocalContext.current
-    val now = remember { Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()) }
 
     var name by remember { mutableStateOf("") }
     var dose by remember { mutableStateOf("") }
@@ -80,8 +79,9 @@ fun AddMedicationScreen(
     var isReminderEnabled by remember { mutableStateOf(false) }
     var selectedFrequency by remember { mutableStateOf("Diario") }
 
+    val now = remember { Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()) }
+    var reminderTime by remember { mutableStateOf(now.time) }
     var startDate by remember { mutableStateOf(now.date) }
-    var reminderTime by remember { mutableStateOf(LocalTime(8, 0)) }
 
     val routes by viewModel.routesList.collectAsState()
     val routeNamesList = remember(routes) { routes.map { it.route } }
