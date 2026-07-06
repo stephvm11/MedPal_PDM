@@ -7,7 +7,6 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import com.pdm0126.medpal.MedPalApplication
-import com.pdm0126.medpal.data.local.database.entities.AdministrationRouteEntity
 import com.pdm0126.medpal.data.model.AdministrationRoute
 import com.pdm0126.medpal.data.model.TargetReminder
 import com.pdm0126.medpal.data.repositories.repositoryAddMed.AddMedRepository
@@ -20,7 +19,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.daysUntil
 import kotlinx.datetime.toLocalDateTime
@@ -55,10 +53,10 @@ class AddMedicationViewModel(
         note: String?,
         selectedRouteName: String,
         isReminderEnabled: Boolean,
-        reminderTime: LocalTime,
         selectedFrequency: String,
         startDate: LocalDate,
-        remindersList: List<TargetReminder>
+        remindersList: List<TargetReminder>,
+        customDays: String
     ) {
         viewModelScope.launch {
 
@@ -102,6 +100,14 @@ class AddMedicationViewModel(
                         "Semanal" -> 7
                         "Quincenal" -> 15
                         "Mensual" -> 30
+                        "Personalizado" -> {
+                            val verificationOfCustomDays = customDays.toIntOrNull()
+                            if (verificationOfCustomDays == null || verificationOfCustomDays !in 1..30) {
+                                _event.emit("Por favor, ingresa una cantidad de días válida entre 1 y 30.")
+                                return@launch
+                            }
+                            verificationOfCustomDays
+                        }
                         else -> 1
                     }
 

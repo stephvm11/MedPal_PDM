@@ -74,6 +74,7 @@ fun AddMedicationScreen(
     var dose by remember { mutableStateOf("") }
     var administrationRoute by remember { mutableStateOf("") }
     var note by remember { mutableStateOf("") }
+    var customDays by remember { mutableStateOf("") }
 
     var isReminderEnabled by remember { mutableStateOf(false) }
     var selectedFrequency by remember { mutableStateOf("Diario") }
@@ -113,10 +114,10 @@ fun AddMedicationScreen(
                                 note = note,
                                 selectedRouteName = administrationRoute,
                                 isReminderEnabled = isReminderEnabled,
-                                reminderTime = reminderTime,
                                 selectedFrequency = selectedFrequency,
                                 startDate = startDate,
-                                remindersList = addedRemindersList
+                                remindersList = addedRemindersList,
+                                customDays = customDays
                             )
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.midnight_green)),
@@ -306,6 +307,28 @@ fun AddMedicationScreen(
                             FrequencyChip("Personalizado", selectedFrequency) { selectedFrequency = it }
                         }
                     }
+                }
+            }
+            AnimatedVisibility(visible = selectedFrequency == "Personalizado") {
+                Column(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+                    FormTextField(
+                        value = customDays,
+                        onValueChange = { newValue ->
+
+                            val digitsOnly = newValue.filter { it.isDigit() }
+
+                            if (digitsOnly.isEmpty()) {
+                                customDays = ""
+                            } else {
+                                val parsedNumber = digitsOnly.toIntOrNull()
+                                if (parsedNumber != null && parsedNumber in 1..30) {
+                                    customDays = digitsOnly
+                                }
+                            }
+                        },
+                        label = "Cantidad de días",
+                        placeholder = "Ej. 5 (Máximo 30)"
+                    )
                 }
             }
             OutlinedTextField(

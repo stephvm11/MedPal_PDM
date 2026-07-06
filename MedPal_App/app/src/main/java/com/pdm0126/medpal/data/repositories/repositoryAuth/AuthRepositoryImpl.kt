@@ -14,11 +14,38 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import com.pdm0126.medpal.data.local.database.entities.UserEntity
+import io.github.jan.supabase.auth.status.SessionStatus
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 class AuthRepositoryImpl (
     private val sessionManager: SessionManager,
     private val userDao: UserDao
 ) : AuthRepository {
+
+    init {
+        CoroutineScope(Dispatchers.IO).launch {
+            SupabaseClient.client.auth.sessionStatus.collect { status ->
+                if (status is SessionStatus.Authenticated) {
+                    val session = status.session
+
+                    KtorClient.accessToken = session.accessToken
+
+                    val currentStoredToken = sessionManager.accessToken.first()
+
+                    if (currentStoredToken != session.accessToken) {
+                        sessionManager.saveSession(
+                            accessToken = session.accessToken,
+                            refreshToken = session.refreshToken,
+                            userId = session.user?.id ?: ""
+                        )
+                    }
+                }
+            }
+        }
+    }
 
     override val isLoggedIn: Flow<Boolean> =
         sessionManager.accessToken.map { it != null }
