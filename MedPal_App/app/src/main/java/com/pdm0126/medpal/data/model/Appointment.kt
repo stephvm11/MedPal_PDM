@@ -5,7 +5,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 
 data class Appointment(
-    val id: Int = 0,
+    val id: Long = 0,
     val title: String,
     val specialist: String,
     val place: String,

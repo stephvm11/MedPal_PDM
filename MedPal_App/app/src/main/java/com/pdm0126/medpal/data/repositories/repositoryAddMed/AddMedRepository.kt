@@ -19,5 +19,4 @@ interface AddMedRepository {
         frequencyDays: Int,
         medicationId: Long
     ): Result<Unit>
-
 }
