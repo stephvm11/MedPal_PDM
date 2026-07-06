@@ -65,7 +65,8 @@ fun AppointmentsHomeScreen(
     onLogout: () -> Unit,
     currentRoute: String,
     onNavigateToItemClick: (String) -> Unit,
-    onAddAppointmentClick: () -> Unit = {}
+    onAddAppointmentClick: () -> Unit = {},
+    onAddExamClick: () -> Unit = {}
 ) {
 
     val context = LocalContext.current
@@ -245,7 +246,7 @@ fun AppointmentsHomeScreen(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    AddCard(onAddClick = {})
+                    AddCard(onAddClick = onAddExamClick)
                     Spacer(modifier = Modifier.width(8.dp))
                     Card(
                         modifier = Modifier
@@ -260,13 +261,13 @@ fun AppointmentsHomeScreen(
                             verticalArrangement = Arrangement.Center
                         ) {
                             Text(
-                                text = "No tienes nada por el momento.",
+                                text = "No tienes examenes programados",
                                 style = MaterialTheme.typography.bodySmall,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.fillMaxWidth()
                             )
                             Text(
-                                text = "Toca para agregar.",
+                                text = "Toca + para agregar.",
                                 style = MaterialTheme.typography.bodySmall,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.fillMaxWidth()
