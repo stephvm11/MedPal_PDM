@@ -150,7 +150,7 @@ class MedicationRepositoryImpl (
                     KtorClient.client.patch("rest/v1/recordatorio_medicamento") {
                         parameter("id", "eq.$reminderId")
                         contentType(ContentType.Application.Json)
-                        setBody(mapOf("ultima_dosis" to timestamp))
+                        setBody(mapOf("fecha_inicio" to timestamp))
                     }
                 } catch (e: Exception) {
                     android.util.Log.e("MEDPAL_DEBUG", "Fallo el parche remoto (Modo Offline activo)", e)

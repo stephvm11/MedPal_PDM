@@ -56,6 +56,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pdm0126.medpal.data.model.TargetReminder
+import com.pdm0126.medpal.data.notifications.ReminderAlarmManager
 import com.pdm0126.medpal.ui.components.FormRoutePicker
 import com.pdm0126.medpal.ui.components.FormTimePicker
 import com.pdm0126.medpal.ui.components.FrequencyChip
@@ -91,6 +92,28 @@ fun AddMedicationScreen(
         viewModel.event.collect { message ->
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
             if (message.contains("éxito") || message.contains("correctamente")) {
+
+                val daysInterval = when (selectedFrequency) {
+                    "Diario" -> 1
+                        "Semanal" -> 7
+                        "Quincenal" -> 15
+                        "Mensual" -> 30
+                        "Personalizado" -> customDays.toIntOrNull() ?: 1
+                    else -> 1
+                }
+
+                addedRemindersList.zip(viewModel.lastSavedReminderIds).forEach { (targetReminder, realId) ->
+                    ReminderAlarmManager.scheduleMedicationAlarm(
+                        context = context,
+                        reminderId = realId,
+                        medicationName = name,
+                        dosage = dose,
+                        hour = targetReminder.time.hour,
+                        minute = targetReminder.time.minute,
+                        daysInterval = daysInterval,
+                        startDate = startDate
+                    )
+                }
                 onCancel()
             }
         }

@@ -19,5 +19,5 @@ interface AddMedRepository {
         frequencyDays: Int,
         medicationId: Long,
         startDate: String
-    ): Result<Unit>
+    ): Result<Long>
 }
