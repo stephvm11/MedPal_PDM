@@ -81,10 +81,7 @@ class MedicationViewModel(
 
                             val localTime = try {
                                 LocalTime.parse(reminder.time.take(5))
-                            } catch (e: Exception) {
-                                null
-                            }
-
+                            } catch (e: Exception) { null }
 
                             val isTakenToday = if (lastDoseDate?.isEqual(today) == true) {
                                 if (lastDoseDateTime != null && localTime != null) {
@@ -106,6 +103,8 @@ class MedicationViewModel(
 
                             val isScheduledForToday = if (lastDoseDate == null) {
                                 true
+                            } else if (lastDoseDate.isAfter(today)) {
+                                false
                             } else {
                                 val daysSinceLastDose = ChronoUnit.DAYS.between(lastDoseDate, today)
                                 daysSinceLastDose % reminder.frequencyDays == 0L

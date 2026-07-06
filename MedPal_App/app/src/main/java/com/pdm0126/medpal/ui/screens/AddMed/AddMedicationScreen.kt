@@ -44,13 +44,18 @@ import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.InputChip
+import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.pdm0126.medpal.data.model.TargetReminder
 import com.pdm0126.medpal.ui.components.FormRoutePicker
 import com.pdm0126.medpal.ui.components.FormTimePicker
 import com.pdm0126.medpal.ui.components.FrequencyChip
@@ -78,6 +83,8 @@ fun AddMedicationScreen(
 
     val routes by viewModel.routesList.collectAsState()
     val routeNamesList = remember(routes) { routes.map { it.route } }
+
+    var addedRemindersList  by remember { mutableStateOf(listOf<TargetReminder>()) }
 
     LaunchedEffect(key1 = true) {
         viewModel.event.collect { message ->
@@ -108,7 +115,8 @@ fun AddMedicationScreen(
                                 isReminderEnabled = isReminderEnabled,
                                 reminderTime = reminderTime,
                                 selectedFrequency = selectedFrequency,
-                                startDate = startDate
+                                startDate = startDate,
+                                remindersList = addedRemindersList
                             )
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.midnight_green)),
@@ -178,7 +186,10 @@ fun AddMedicationScreen(
                 )
 
                 Button(
-                    onClick = {isReminderEnabled = !isReminderEnabled},
+                    onClick = {
+                        isReminderEnabled = !isReminderEnabled
+                        if(!isReminderEnabled) addedRemindersList = emptyList()
+                              },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (isReminderEnabled) Color.Transparent else Color.LightGray,
                         contentColor = Color.Black
@@ -200,11 +211,82 @@ fun AddMedicationScreen(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    FormTimePicker(
-                        value = reminderTime,
-                        onValueChange = { reminderTime = it },
-                        label = "Hora de recordatorio"
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(modifier = Modifier.weight(1f)) {
+
+                            FormTimePicker(
+                                value = reminderTime,
+                                onValueChange = { reminderTime = it },
+                                label = "Hora de recordatorio"
+                            )
+                        }
+
+                        IconButton(
+                            onClick = {
+                                val targetTime = TargetReminder(reminderTime)
+                                if (!addedRemindersList.contains(targetTime)) {
+                                    addedRemindersList = addedRemindersList + targetTime
+                                } else {
+                                    Toast.makeText(context, "Esa hora ya fue añadida", Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                            modifier = Modifier
+                                .size(48.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "Añadir hora",
+                                tint = colorResource(R.color.midnight_green),
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
+                    }
+
+                    if (addedRemindersList.isNotEmpty()) {
+                        Text(
+                            text = "Horas añadidas para tus recordatorios:",
+                            fontSize = 13.sp,
+                            color = colorResource(R.color.midnight_green),
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            addedRemindersList.forEach { reminderItem ->
+                                val timeText = "${reminderItem.time.hour.toString().padStart(2, '0')}:${
+                                    reminderItem.time.minute.toString().padStart(2, '0')
+                                }"
+                                InputChip(
+                                    selected = true,
+                                    onClick = { },
+                                    label = { Text(timeText, fontWeight = FontWeight.Bold) },
+                                    trailingIcon = {
+                                        IconButton(
+                                            onClick = { addedRemindersList = addedRemindersList - reminderItem },
+                                            modifier = Modifier.size(16.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Close,
+                                                contentDescription = "Eliminar hora",
+                                                tint = Color.Red
+                                            )
+                                        }
+                                    },
+                                    colors = InputChipDefaults.inputChipColors(
+                                        selectedContainerColor = colorResource(R.color.midnight_green).copy(alpha = 0.1f),
+                                        selectedLabelColor = colorResource(R.color.midnight_green)
+                                    )
+                                )
+                            }
+                        }
+                    }
 
                     Text(
                         text = "Frecuencia",

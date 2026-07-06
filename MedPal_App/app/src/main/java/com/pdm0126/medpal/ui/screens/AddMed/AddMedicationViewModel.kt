@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import com.pdm0126.medpal.MedPalApplication
 import com.pdm0126.medpal.data.local.database.entities.AdministrationRouteEntity
 import com.pdm0126.medpal.data.model.AdministrationRoute
+import com.pdm0126.medpal.data.model.TargetReminder
 import com.pdm0126.medpal.data.repositories.repositoryAddMed.AddMedRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -56,7 +57,8 @@ class AddMedicationViewModel(
         isReminderEnabled: Boolean,
         reminderTime: LocalTime,
         selectedFrequency: String,
-        startDate: LocalDate
+        startDate: LocalDate,
+        remindersList: List<TargetReminder>
     ) {
         viewModelScope.launch {
 
@@ -94,7 +96,7 @@ class AddMedicationViewModel(
                 userId = userId
             ).onSuccess { medicationId ->
 
-                if (isReminderEnabled) {
+                if (isReminderEnabled && remindersList.isNotEmpty()) {
                     val frequencyDays = when (selectedFrequency) {
                         "Diario" -> 1
                         "Semanal" -> 7
@@ -103,25 +105,29 @@ class AddMedicationViewModel(
                         else -> 1
                     }
 
-                    val formattedTime = "${reminderTime.hour.toString().padStart(2, '0')}:${
-                        reminderTime.minute.toString().padStart(2, '0')
-                    }:00"
+                    var succesReminders = true
+                    var errorReminders = ""
 
-                    val formattedDateTime = "${startDate}T${
-                        reminderTime.hour.toString().padStart(2, '0')
-                    }:${
-                        reminderTime.minute.toString().padStart(2, '0')
-                    }:00"
+                    remindersList.forEach {  target ->
 
-                    repository.createReminder(
-                        time = formattedTime,
+                        val formattedTime = "${target.time.hour.toString().padStart(2, '0')}:${
+                            target.time.minute.toString().padStart(2, '0')
+                        }:00"
+
+                        val formattedDateTime = "${startDate}T$formattedTime"
+
+                        repository.createReminder(
+                            time = formattedTime,
                         frequencyDays = frequencyDays,
                         medicationId = medicationId,
                         startDate = formattedDateTime
-                    ).onSuccess {
-                        _event.emit("¡Medicamento y recordatorio creados con éxito!")
-                    }.onFailure { error ->
-                        _event.emit("Medicamento creado, pero falló el recordatorio: ${error.localizedMessage}")
+                        ).onFailure { error ->
+                        succesReminders = false
+                        errorReminders = error.localizedMessage ?: "Error desconocido"
+                    }
+                    }
+                    if (succesReminders) {
+                        _event.emit("¡Medicamento y todos sus recordatorios creados con éxito!")
                     }
                 } else {
                     _event.emit("¡Medicamento guardado correctamente!")
