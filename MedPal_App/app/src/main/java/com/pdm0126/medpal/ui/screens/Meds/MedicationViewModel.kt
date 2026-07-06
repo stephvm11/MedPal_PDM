@@ -25,6 +25,13 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import kotlin.collections.forEach
+import com.pdm0126.medpal.data.notifications.ReminderAlarmManager
+import android.content.Context
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.plus
+import kotlinx.datetime.toKotlinLocalDate
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
 
 class MedicationViewModel(
     private val repository: MedicationRepository,
@@ -45,7 +52,6 @@ class MedicationViewModel(
 
     init {
         loadData()
-        refreshFromServer()
     }
 
     private fun loadData() {
@@ -171,12 +177,60 @@ class MedicationViewModel(
         }
     }
 
-    fun refreshFromServer() {
+    fun refreshFromServer(context: Context) {
         viewModelScope.launch {
             _error.value = null
             _refreshing.value = true
 
-            repository.refresh(userId).onSuccess {}.onFailure { error ->
+            repository.refresh(userId).onSuccess {
+                val medicationsWithReminders = repository.getMedicationsWithReminders(userId).first()
+
+                medicationsWithReminders.forEach { relation ->
+                    val med = relation.medication
+
+                    relation.reminders.forEach { reminder ->
+
+                        val startDate = try {
+                            val dateString = reminder.lastDose?.take(10) ?: error("No date")
+                            kotlinx.datetime.LocalDate.parse(dateString)
+                        } catch(e: Exception) {
+                            Clock.System.now().toLocalDateTime(kotlinx.datetime.TimeZone.currentSystemDefault()).date
+                        }
+
+                        val localTime = try {
+                            LocalTime.parse(reminder.time.take(5))
+                        } catch (e: Exception) {
+                            null
+                        }
+
+                        if (localTime != null) {
+                            val nowDateTime = LocalDateTime.now()
+                            val currentTime = nowDateTime.toLocalTime()
+                            val localTimeJava = java.time.LocalTime.of(localTime.hour, localTime.minute)
+
+                            val finalStartDate = if (localTimeJava < currentTime) {
+                                Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date.plus(1, kotlinx.datetime.DateTimeUnit.DAY)
+                            } else {
+                                Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+                            }
+
+
+
+                            ReminderAlarmManager.scheduleMedicationAlarm(
+                                context = context,
+                                reminderId = reminder.id,
+                                medicationName = med.name,
+                                dosage = med.dosage,
+                                hour = localTime.hour,
+                                minute = localTime.minute,
+                                daysInterval = reminder.frequencyDays,
+                                startDate = finalStartDate
+                            )
+                        }
+                    }
+                }
+                _event.emit("¡Datos actualizados correctamente!")
+            }.onFailure { error ->
                 _event.emit("Error de sincronización!! Si quieres jala la pantalla para intentarlo otra vez")
             }
 

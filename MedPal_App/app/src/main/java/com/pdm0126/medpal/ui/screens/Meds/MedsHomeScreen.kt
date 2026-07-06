@@ -61,6 +61,10 @@ fun MedsHomeScreen(
     val error by viewModel.error.collectAsState()
     val context = LocalContext.current
 
+    LaunchedEffect(Unit) {
+        viewModel.refreshFromServer(context)
+    }
+
     LaunchedEffect(key1 = true) {
         viewModel.event.collect { message ->
             if (message.contains("Error")) {
@@ -98,7 +102,7 @@ fun MedsHomeScreen(
 
         PullToRefreshBox(
             isRefreshing = refresh,
-            onRefresh = { viewModel.refreshFromServer() },
+            onRefresh = { viewModel.refreshFromServer(context) },
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
