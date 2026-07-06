@@ -39,10 +39,17 @@ fun MedGeneralCard(
     time: String,
     modifier: Modifier = Modifier
 ){
-    val remaining = when (daysRemaining) {
-        0 -> "Toca hoy"
-        1 -> "Toca mañana"
-        else -> "Faltan $daysRemaining días"
+
+    val hasReminder = daysRemaining != -1 && time != "--:--"
+
+    val remaining = if (hasReminder) {
+        when (daysRemaining) {
+            0 -> "Toca hoy"
+            1 -> "Toca mañana"
+            else -> "Faltan $daysRemaining días"
+        }
+    } else {
+        "sin recordatorio"
     }
 
     Card(
@@ -86,7 +93,7 @@ fun MedGeneralCard(
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                text = "$remaining | $time ",
+                text = if (hasReminder) "$remaining | $time " else remaining,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 color = colorResource(R.color.midnight_green),
