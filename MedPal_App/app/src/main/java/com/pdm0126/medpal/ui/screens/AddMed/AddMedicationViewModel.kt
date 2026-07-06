@@ -35,6 +35,9 @@ class AddMedicationViewModel(
     private val _event = MutableSharedFlow<String>()
     val event = _event.asSharedFlow()
 
+    var lastSavedReminderIds: List<Long> = emptyList()
+        private set
+
     init {
         loadRoutesCatalog()
     }
@@ -86,6 +89,8 @@ class AddMedicationViewModel(
                 return@launch
             }
 
+            val temporaryIdsList = mutableListOf<Long>()
+
             repository.createMedication(
                 name = name,
                 dosage = dosage,
@@ -127,12 +132,15 @@ class AddMedicationViewModel(
                         frequencyDays = frequencyDays,
                         medicationId = medicationId,
                         startDate = formattedDateTime
-                        ).onFailure { error ->
+                        ).onSuccess { generatedReminderId ->
+                            temporaryIdsList.add(generatedReminderId)
+                        } .onFailure { error ->
                         succesReminders = false
                         errorReminders =  "Error al crear tus recordatorios"
                     }
                     }
                     if (succesReminders) {
+                        lastSavedReminderIds = temporaryIdsList
                         _event.emit("¡Medicamento y todos sus recordatorios creados con éxito!")
                     }
                 } else {
@@ -165,3 +173,4 @@ class AddMedicationViewModel(
         }
     }
 }
+

@@ -74,7 +74,7 @@ class AddMedRepositoryImpl (
         frequencyDays: Int,
         medicationId: Long,
         startDate: String
-    ): Result<Unit> {
+    ): Result<Long> {
         return try {
 
             val jsonBody = buildJsonObject {
@@ -93,7 +93,8 @@ class AddMedRepositoryImpl (
             val response = responseList.first()
 
             medicationReminderDao.upsertReminder(response.toEntity())
-            Result.success(Unit)
+
+            Result.success(response.id.toLong())
         } catch (e: Exception) {
             Result.failure(e)
         }
