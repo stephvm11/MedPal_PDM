@@ -28,13 +28,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.graphics.Color
 
 @Composable
 fun AllMyMeds(
     meds: List<AllMedItem>,
     modifier: Modifier = Modifier
 ){
-
     var expanded by remember { mutableStateOf(false) }
 
     Column(modifier = modifier.fillMaxWidth().padding(16.dp)) {
@@ -58,22 +58,33 @@ fun AllMyMeds(
             )
         }
         AnimatedVisibility(visible = expanded) {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(3), // Caben exactamente 3 por fila antes de bajar
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                userScrollEnabled = false, // Delega el scroll a la pantalla principal[cite: 3]
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 1000.dp) // Evita colapsar y le permite expandirse hacia abajo[cite: 3]
-                    .padding(top = 12.dp)
-            ) {
-                items(meds) { item ->
-                    MedGeneralCard(
-                        name = item.name,
-                        hour = item.time,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+            if (meds.isEmpty()) {
+                Text(
+                    text = "No tienes más medicamentos programados.",
+                    fontSize = 14.sp,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(top = 12.dp)
+                )
+            }else {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    userScrollEnabled = false,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 1000.dp)
+                        .padding(top = 12.dp)
+                ) {
+                    items(meds) { item ->
+                        MedGeneralCard(
+                            name = item.name,
+                            dosage = item.dosage,
+                            daysRemaining = item.daysRemaining,
+                            time = item.time,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
                 }
             }
 

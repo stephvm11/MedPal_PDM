@@ -11,16 +11,15 @@ import com.pdm0126.medpal.data.model.MedGeneral
 import com.pdm0126.medpal.data.repositories.repositoryMedication.MedicationRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import com.pdm0126.medpal.MedPalApplication
-import com.pdm0126.medpal.data.model.Medication
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import kotlinx.datetime.LocalTime
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -65,7 +64,21 @@ class MedicationViewModel(
                         }
                         val lastDoseDate = lastDoseDateTime?.toLocalDate()
 
-                        val isTakenToday = lastDoseDate?.isEqual(today) == true
+                        val localTime = try {
+                            LocalTime.parse(reminder.time.take(5))
+                        } catch (e: Exception) { null }
+
+
+                        val isTakenToday = if (lastDoseDate?.isEqual(today) == true) {
+                            if (lastDoseDateTime != null && localTime != null) {
+                                !(lastDoseDateTime.toLocalTime().hour == localTime.hour &&
+                                        lastDoseDateTime.toLocalTime().minute == localTime.minute)
+                            } else {
+                                true
+                            }
+                        } else {
+                            false
+                        }
 
                         val displayTime = if (isTakenToday && lastDoseDateTime != null) {
                             lastDoseDateTime.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm"))
@@ -91,10 +104,20 @@ class MedicationViewModel(
                                 )
                             )
                         } else {
+                            val daysRemaining = if (lastDoseDate == null) {
+                                0
+                            } else {
+                                val daysSinceLastDose = ChronoUnit.DAYS.between(lastDoseDate, today)
+                                val daysIntoCurrentCycle = daysSinceLastDose % reminder.frequencyDays
+                                (reminder.frequencyDays - daysIntoCurrentCycle).toInt()
+                            }
+
                             allItems.add(
                                 AllMedItem(
                                     reminderId = reminder.id,
                                     name = med.name,
+                                    dosage = med.dosage,
+                                    daysRemaining = daysRemaining,
                                     time = displayTime
                                 )
                             )
