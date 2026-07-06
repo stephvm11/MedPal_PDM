@@ -21,13 +21,13 @@ interface AppointmentDao {
     @Query("SELECT * FROM cita WHERE id_usuario = :userId ORDER BY fecha ASC, hora ASC")
     fun getAppointmentsWithRemindersByUser(userId: Long): Flow<List<AppointmentWithReminders>>
 
-    @Query("SELECT * FROM cita WHERE id_usuario = :userId AND estado_finalizacion = 'false' ORDER BY fecha ASC, hora ASC")
+    @Query("SELECT * FROM cita WHERE id_usuario = :userId AND estado_finalizacion = 0 ORDER BY fecha ASC, hora ASC")
     fun getPendingAppointmentsWithReminderByUser(userId: Long): Flow<List<AppointmentWithReminders>>
 
-    @Query("SELECT * FROM cita WHERE id_usuario = :userId AND estado_finalizacion = 'true' ORDER BY fecha ASC, hora ASC")
+    @Query("SELECT * FROM cita WHERE id_usuario = :userId AND estado_finalizacion = 1 ORDER BY fecha ASC, hora ASC")
     fun getCompletedAppointmentsWithReminderByUser(userId: Long): Flow<List<AppointmentWithReminders>>
 
-    @Query("SELECT * FROM cita WHERE id_usuario = :userId AND fecha = :date AND estado_finalizacion = 'false' ORDER BY hora ASC")
+    @Query("SELECT * FROM cita WHERE id_usuario = :userId AND fecha = :date AND estado_finalizacion = 0 ORDER BY hora ASC")
     fun getTodayAppointments(userId: Long, date: LocalDate): Flow<List<AppointmentEntity>>
 
     @Query(
@@ -35,7 +35,7 @@ interface AppointmentDao {
         SELECT * FROM cita 
         WHERE id_usuario = :userId 
         AND fecha BETWEEN :startDate AND :endDate 
-        AND estado_finalizacion = 'false'
+        AND estado_finalizacion = 0
         ORDER BY fecha ASC, hora ASC
     """
     )
@@ -45,10 +45,10 @@ interface AppointmentDao {
         endDate: LocalDate
     ): Flow<List<AppointmentEntity>>
 
-    @Query("UPDATE cita SET estado_finalizacion = 'true' WHERE id = :appointmentId")
+    @Query("UPDATE cita SET estado_finalizacion = 1 WHERE id = :appointmentId")
     suspend fun completeAppointment(appointmentId: Long)
 
-    @Query("UPDATE cita SET estado_finalizacion = 'false' WHERE id = :appointmentId")
+    @Query("UPDATE cita SET estado_finalizacion = 0 WHERE id = :appointmentId")
     suspend fun uncompletedAppointment(appointmentId: Long)
 
     @Upsert

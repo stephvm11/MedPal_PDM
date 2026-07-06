@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.CheckBox
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.outlined.CheckBox
+import androidx.compose.material.icons.outlined.CheckBoxOutlineBlank
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -58,7 +59,7 @@ fun AppoinmentCard(
         ),
         border = BorderStroke(
             width = 3.dp,
-            color = if (isDone) colorResource(R.color.midnight_green) else colorResource(R.color.beige)
+            color = if (isDone) colorResource(R.color.beige).copy(alpha = 0.5f) else colorResource(R.color.beige)
         ),
         shape = CardDefaults.outlinedShape
     ) {
@@ -145,9 +146,11 @@ fun AppoinmentCard(
                         .align(Alignment.End)
                 ) {
                     Icon(
-                        imageVector = if (isDone) Icons.Filled.CheckBox else Icons.Outlined.CheckBox,
+                        imageVector = if (isDone) Icons.Filled.CheckBox else Icons.Outlined.CheckBoxOutlineBlank,
                         contentDescription = if (isDone) "Marcar como pendiente" else "Marcar como completada",
-                        tint = colorResource(R.color.beige),
+                        tint = if (isDone) colorResource(R.color.beige).copy(alpha = 0.5f) else colorResource(
+                            R.color.beige
+                        ),
                         modifier = Modifier.size(40.dp)
                     )
                 }

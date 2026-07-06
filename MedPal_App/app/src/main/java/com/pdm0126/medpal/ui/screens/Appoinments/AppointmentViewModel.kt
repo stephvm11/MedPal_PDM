@@ -39,6 +39,11 @@ class AppointmentViewModel(
         appointmentRepository.getAppointmentsWithReminders(userId)
             .map { withReminders ->
                 withReminders.map { it.appointment.toModel() }
+                    .sortedWith(compareBy(
+                        {it.status},
+                        {it.date},
+                        {it.time}
+                    ))
             }
             .stateIn(
                 scope = viewModelScope,

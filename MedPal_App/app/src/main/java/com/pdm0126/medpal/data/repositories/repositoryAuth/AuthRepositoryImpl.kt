@@ -1,6 +1,5 @@
 package com.pdm0126.medpal.data.repositories.repositoryAuth
 
-import androidx.compose.material3.Text
 import com.pdm0126.medpal.data.local.database.dao.UserDao
 import com.pdm0126.medpal.data.remote.api.KtorClient
 import com.pdm0126.medpal.data.remote.api.SupabaseClient
@@ -42,10 +41,13 @@ class AuthRepositoryImpl(
                             val userInfo: List<UserDto> = KtorClient.client.get("rest/v1/usuario") {
                                 parameter("auth_user_id", "eq.${session.user?.id}")
                             }.body()
+
                             userInfo.firstOrNull()?.id?.toString() ?: ""
                         } catch (e: Exception) {
+
                             "Error: ${e.message}"
                         }
+
                         sessionManager.saveSession(
                             accessToken = session.accessToken,
                             refreshToken = session.refreshToken,
@@ -86,7 +88,7 @@ class AuthRepositoryImpl(
             val userId = session?.user?.id ?: authResponse.userMetadata?.get("id")?.toString()
 
             if (userId == null) {
-                throw Exception("No se pudo obtner el id del usuari")
+                throw Exception("No se pudo obtener el id del usuario")
             }
 
             if (session != null) {
@@ -136,6 +138,7 @@ class AuthRepositoryImpl(
             val publicUser = userInfo.first()
 
             userDao.upsertUser(publicUser.toEntity())
+            val savedUser = userDao.getUserById(publicUser.id).first()
 
             sessionManager.saveSession(
                 accessToken = session.accessToken,

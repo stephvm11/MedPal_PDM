@@ -22,7 +22,7 @@ data class AppointmentDto(
     val date: LocalDate,
     @SerialName("hora")
     val time: LocalTime,
-    @SerialName("estado_finaliacion")
+    @SerialName("estado_finalizacion")
     val status: Boolean = false
 )
 
