@@ -33,6 +33,8 @@ class AppointmentRepositoryImpl(
             val appointments: List<AppointmentDto> =
                 KtorClient.client.get("rest/v1/cita") { parameter("id_usuario", "eq.$userId") }
                     .body()
+            appointments.forEach { println("   - ${it.title} (${it.date})") }
+
             appointmentDao.upsertAppointments(appointments.map { it.toEntity() })
             Result.success(Unit)
         } catch (e: Exception) {

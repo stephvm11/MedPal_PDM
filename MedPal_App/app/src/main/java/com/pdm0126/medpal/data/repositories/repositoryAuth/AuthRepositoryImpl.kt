@@ -1,5 +1,6 @@
 package com.pdm0126.medpal.data.repositories.repositoryAuth
 
+import androidx.compose.material3.Text
 import com.pdm0126.medpal.data.local.database.dao.UserDao
 import com.pdm0126.medpal.data.remote.api.KtorClient
 import com.pdm0126.medpal.data.remote.api.SupabaseClient
@@ -20,7 +21,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-class AuthRepositoryImpl (
+class AuthRepositoryImpl(
     private val sessionManager: SessionManager,
     private val userDao: UserDao
 ) : AuthRepository {
@@ -36,10 +37,19 @@ class AuthRepositoryImpl (
                     val currentStoredToken = sessionManager.accessToken.first()
 
                     if (currentStoredToken != session.accessToken) {
+
+                        val userId = try {
+                            val userInfo: List<UserDto> = KtorClient.client.get("rest/v1/usuario") {
+                                parameter("auth_user_id", "eq.${session.user?.id}")
+                            }.body()
+                            userInfo.firstOrNull()?.id?.toString() ?: ""
+                        } catch (e: Exception) {
+                            "Error: ${e.message}"
+                        }
                         sessionManager.saveSession(
                             accessToken = session.accessToken,
                             refreshToken = session.refreshToken,
-                            userId = session.user?.id ?: ""
+                            userId = userId
                         )
                     }
                 }
@@ -58,16 +68,16 @@ class AuthRepositoryImpl (
         lastName: String,
         email: String,
         password: String
-    ){
+    ) {
         try {
-            val authResponse = SupabaseClient.client.auth.signUpWith(Email){
+            val authResponse = SupabaseClient.client.auth.signUpWith(Email) {
                 this.email = email
                 this.password = password
             }
 
             val userEmail = authResponse?.email
 
-            if (userEmail == null){
+            if (userEmail == null) {
                 throw Exception("Error en el registro")
             }
 
@@ -75,11 +85,11 @@ class AuthRepositoryImpl (
 
             val userId = session?.user?.id ?: authResponse.userMetadata?.get("id")?.toString()
 
-            if (userId == null){
+            if (userId == null) {
                 throw Exception("No se pudo obtner el id del usuari")
             }
 
-            if (session != null ){
+            if (session != null) {
                 sessionManager.saveSession(
                     accessToken = session.accessToken,
                     refreshToken = session.refreshToken,
@@ -91,17 +101,18 @@ class AuthRepositoryImpl (
 
             Result.success(Unit)
 
-        }catch (e: Exception){
+        } catch (e: Exception) {
             throw e
         }
     }
 
     override suspend fun login(
         email: String,
-        password: String){
-         try {
+        password: String
+    ) {
+        try {
 
-            SupabaseClient.client.auth.signInWith(Email){
+            SupabaseClient.client.auth.signInWith(Email) {
                 this.email = email
                 this.password = password
             }
@@ -112,19 +123,19 @@ class AuthRepositoryImpl (
             val user = session.user
                 ?: throw Exception("No se obtuvo el usuario")
 
-             KtorClient.accessToken = session.accessToken
+            KtorClient.accessToken = session.accessToken
 
-             val userInfo: List<UserDto> = KtorClient.client.get("rest/v1/usuario") {
-                 parameter("auth_user_id", "eq.${user.id}")
-             }.body()
+            val userInfo: List<UserDto> = KtorClient.client.get("rest/v1/usuario") {
+                parameter("auth_user_id", "eq.${user.id}")
+            }.body()
 
-             if (userInfo.isEmpty()) {
-                 throw Exception("El perfil del usuario no está registrado en la base de datos pública")
-             }
+            if (userInfo.isEmpty()) {
+                throw Exception("El perfil del usuario no está registrado en la base de datos pública")
+            }
 
-             val publicUser = userInfo.first()
+            val publicUser = userInfo.first()
 
-             userDao.upsertUser(publicUser.toEntity())
+            userDao.upsertUser(publicUser.toEntity())
 
             sessionManager.saveSession(
                 accessToken = session.accessToken,
@@ -132,8 +143,8 @@ class AuthRepositoryImpl (
                 userId = publicUser.id.toString()
             )
 
-        }catch (e: Exception){
-             throw e
+        } catch (e: Exception) {
+            throw e
         }
     }
 
