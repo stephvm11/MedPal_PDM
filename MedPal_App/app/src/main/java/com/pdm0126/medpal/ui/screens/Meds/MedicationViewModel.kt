@@ -19,7 +19,6 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import com.pdm0126.medpal.MedPalApplication
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import kotlinx.datetime.LocalTime
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -33,6 +32,12 @@ class MedicationViewModel(
 
     private val _generalMedList = MutableStateFlow(MedGeneral())
     val generalMedList = _generalMedList.asStateFlow()
+
+    private val _refreshing = MutableStateFlow<Boolean>(false)
+    val refreshing = _refreshing.asStateFlow()
+
+    private val _error = MutableStateFlow<String?>(null)
+    val error = _error.asStateFlow()
 
     private val _event = MutableSharedFlow<String>()
     val event = _event.asSharedFlow()
@@ -57,70 +62,72 @@ class MedicationViewModel(
 
                     val med = relation.medication
 
-                    relation.reminders.forEach { reminder ->
+                    if (relation.reminders.isEmpty()) {
+                        allItems.add(
+                            AllMedItem(
+                                reminderId = -1L,
+                                name = med.name,
+                                dosage = med.dosage,
+                                daysRemaining = -1,
+                                time = "--:--"
+                            )
+                        )
+                    } else {
+                        relation.reminders.forEach { reminder ->
 
-                        val lastDoseDateTime = reminder.lastDose?.let {
-                            try { LocalDateTime.parse(it, DateTimeFormatter.ISO_DATE_TIME) } catch (e: Exception) { null }
-                        }
-                        val lastDoseDate = lastDoseDateTime?.toLocalDate()
+                            val startDateTime = reminder.lastDose?.let {
+                                try {
+                                    LocalDateTime.parse(it, DateTimeFormatter.ISO_DATE_TIME)
+                                } catch (e: Exception) {
+                                    null
+                                }
+                            }
+                            val startDate = startDateTime?.toLocalDate()
 
-                        val localTime = try {
-                            LocalTime.parse(reminder.time.take(5))
-                        } catch (e: Exception) { null }
+                            val isTakenToday = false
 
+                            val displayTime = reminder.time.take(5)
 
-                        val isTakenToday = if (lastDoseDate?.isEqual(today) == true) {
-                            if (lastDoseDateTime != null && localTime != null) {
-                                !(lastDoseDateTime.toLocalTime().hour == localTime.hour &&
-                                        lastDoseDateTime.toLocalTime().minute == localTime.minute)
-                            } else {
+                            val isScheduledForToday = if (startDate == null) {
                                 true
-                            }
-                        } else {
-                            false
-                        }
-
-                        val displayTime = if (isTakenToday && lastDoseDateTime != null) {
-                            lastDoseDateTime.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm"))
-                        } else {
-                            reminder.time.take(5)
-                        }
-
-                        val isScheduledForToday = if (lastDoseDate == null) {
-                            true
-                        } else {
-                            val daysSinceLastDose = ChronoUnit.DAYS.between(lastDoseDate, today)
-                            daysSinceLastDose % reminder.frequencyDays == 0L
-                        }
-
-                        if (isScheduledForToday) {
-                            dailyItems.add(
-                                MedDay(
-                                    reminderId = reminder.id,
-                                    name = med.name,
-                                    dosage = med.dosage,
-                                    time = displayTime,
-                                    isTaken = isTakenToday
-                                )
-                            )
-                        } else {
-                            val daysRemaining = if (lastDoseDate == null) {
-                                0
+                            } else if (startDate.isAfter(today)) {
+                                false
                             } else {
-                                val daysSinceLastDose = ChronoUnit.DAYS.between(lastDoseDate, today)
-                                val daysIntoCurrentCycle = daysSinceLastDose % reminder.frequencyDays
-                                (reminder.frequencyDays - daysIntoCurrentCycle).toInt()
+                                val daysSinceStartDate = ChronoUnit.DAYS.between(startDate, today)
+                                daysSinceStartDate % reminder.frequencyDays == 0L
                             }
 
-                            allItems.add(
-                                AllMedItem(
-                                    reminderId = reminder.id,
-                                    name = med.name,
-                                    dosage = med.dosage,
-                                    daysRemaining = daysRemaining,
-                                    time = displayTime
+                            if (isScheduledForToday) {
+                                dailyItems.add(
+                                    MedDay(
+                                        reminderId = reminder.id,
+                                        name = med.name,
+                                        dosage = med.dosage,
+                                        time = displayTime,
+                                        isTaken = isTakenToday
+                                    )
                                 )
-                            )
+                            } else {
+                                val daysRemaining = if (startDate == null) {
+                                    0
+                                } else {
+                                    val daysSinceLastDose =
+                                        ChronoUnit.DAYS.between(startDate, today)
+                                    val daysIntoCurrentCycle =
+                                        daysSinceLastDose % reminder.frequencyDays
+                                    (reminder.frequencyDays - daysIntoCurrentCycle).toInt()
+                                }
+
+                                allItems.add(
+                                    AllMedItem(
+                                        reminderId = reminder.id,
+                                        name = med.name,
+                                        dosage = med.dosage,
+                                        daysRemaining = daysRemaining,
+                                        time = displayTime
+                                    )
+                                )
+                            }
                         }
                     }
                 }
@@ -138,10 +145,17 @@ class MedicationViewModel(
 
     fun refreshFromServer() {
         viewModelScope.launch {
-            repository.refresh(userId).onFailure { error ->
-                android.util.Log.e("MEDPAL_DEBUG", "¡La descarga de Supabase falló!", error)
-                _event.emit("Error de sincronización: ${error.localizedMessage}")
-            }
+            _error.value = null
+            _refreshing.value = true
+
+            repository.refresh(userId)
+                .onSuccess {
+                }
+                .onFailure { error ->
+                    _event.emit("Error de sincronización!! Si quieres jala la pantalla para intentarlo otra vez")
+                }
+
+            _refreshing.value = false
         }
     }
 
@@ -154,7 +168,7 @@ class MedicationViewModel(
                     _event.emit("Medicamento registrado localmente")
                 }
                 .onFailure { error ->
-                    _event.emit("Error local: ${error.localizedMessage}")
+                    _event.emit("Error local, no se pudo crear tu medicamento")
                 }
 
         }

@@ -7,8 +7,8 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import com.pdm0126.medpal.MedPalApplication
-import com.pdm0126.medpal.data.local.database.entities.AdministrationRouteEntity
 import com.pdm0126.medpal.data.model.AdministrationRoute
+import com.pdm0126.medpal.data.model.TargetReminder
 import com.pdm0126.medpal.data.repositories.repositoryAddMed.AddMedRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.daysUntil
 import kotlinx.datetime.toLocalDateTime
@@ -54,9 +53,10 @@ class AddMedicationViewModel(
         note: String?,
         selectedRouteName: String,
         isReminderEnabled: Boolean,
-        reminderTime: LocalTime,
         selectedFrequency: String,
-        startDate: LocalDate
+        startDate: LocalDate,
+        remindersList: List<TargetReminder>,
+        customDays: String
     ) {
         viewModelScope.launch {
 
@@ -94,41 +94,53 @@ class AddMedicationViewModel(
                 userId = userId
             ).onSuccess { medicationId ->
 
-                if (isReminderEnabled) {
+                if (isReminderEnabled && remindersList.isNotEmpty()) {
                     val frequencyDays = when (selectedFrequency) {
                         "Diario" -> 1
                         "Semanal" -> 7
                         "Quincenal" -> 15
                         "Mensual" -> 30
+                        "Personalizado" -> {
+                            val verificationOfCustomDays = customDays.toIntOrNull()
+                            if (verificationOfCustomDays == null || verificationOfCustomDays !in 1..30) {
+                                _event.emit("Por favor, ingresa una cantidad de días válida entre 1 y 30.")
+                                return@launch
+                            }
+                            verificationOfCustomDays
+                        }
                         else -> 1
                     }
 
-                    val formattedTime = "${reminderTime.hour.toString().padStart(2, '0')}:${
-                        reminderTime.minute.toString().padStart(2, '0')
-                    }:00"
+                    var succesReminders = true
+                    var errorReminders = ""
 
-                    val formattedDateTime = "${startDate}T${
-                        reminderTime.hour.toString().padStart(2, '0')
-                    }:${
-                        reminderTime.minute.toString().padStart(2, '0')
-                    }:00"
+                    remindersList.forEach {  target ->
 
-                    repository.createReminder(
-                        time = formattedTime,
+                        val formattedTime = "${target.time.hour.toString().padStart(2, '0')}:${
+                            target.time.minute.toString().padStart(2, '0')
+                        }:00"
+
+                        val formattedDateTime = "${startDate}T$formattedTime"
+
+                        repository.createReminder(
+                            time = formattedTime,
                         frequencyDays = frequencyDays,
                         medicationId = medicationId,
                         startDate = formattedDateTime
-                    ).onSuccess {
-                        _event.emit("¡Medicamento y recordatorio creados con éxito!")
-                    }.onFailure { error ->
-                        _event.emit("Medicamento creado, pero falló el recordatorio: ${error.localizedMessage}")
+                        ).onFailure { error ->
+                        succesReminders = false
+                        errorReminders =  "Error al crear tus recordatorios"
+                    }
+                    }
+                    if (succesReminders) {
+                        _event.emit("¡Medicamento y todos sus recordatorios creados con éxito!")
                     }
                 } else {
                     _event.emit("¡Medicamento guardado correctamente!")
                 }
 
             }.onFailure { error ->
-                _event.emit("Error al guardar el medicamento: ${error.localizedMessage}")
+                _event.emit("Error al guardar el medicamento, intentalo mas tarde")
             }
         }
     }

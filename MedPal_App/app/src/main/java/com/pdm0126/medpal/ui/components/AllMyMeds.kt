@@ -34,15 +34,19 @@ import androidx.compose.ui.graphics.Color
 fun AllMyMeds(
     meds: List<AllMedItem>,
     modifier: Modifier = Modifier
-){
+) {
     var expanded by remember { mutableStateOf(false) }
 
-    Column(modifier = modifier.fillMaxWidth().padding(16.dp)) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable{ expanded = !expanded}
+                .clickable { expanded = !expanded }
                 .padding(vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
@@ -65,30 +69,37 @@ fun AllMyMeds(
                     color = Color.Gray,
                     modifier = Modifier.padding(top = 12.dp)
                 )
-            }else {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    userScrollEnabled = false,
+            } else {
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(max = 1000.dp)
-                        .padding(top = 12.dp)
+                        .padding(top = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    items(meds) { item ->
-                        MedGeneralCard(
-                            name = item.name,
-                            dosage = item.dosage,
-                            daysRemaining = item.daysRemaining,
-                            time = item.time,
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                    meds.chunked(2).forEach { rowItems ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            rowItems.forEach { item ->
+                                MedGeneralCard(
+                                    name = item.name,
+                                    dosage = item.dosage,
+                                    daysRemaining = item.daysRemaining,
+                                    time = item.time,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+
+                            if (rowItems.size < 2) {
+                                Column(modifier = Modifier.weight(1f)) {}
+                            }
+                        }
                     }
+
                 }
+
             }
-
         }
-
     }
 }
