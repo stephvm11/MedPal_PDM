@@ -24,7 +24,7 @@ import com.pdm0126.medpal.data.local.database.entities.AppointmentEntity
         MedicationReminderEntity::class,
         AppointmentEntity::class
     ],
-    version = 9,
+    version = 10,
 exportSchema = false
 )
 @TypeConverters(Converters::class)

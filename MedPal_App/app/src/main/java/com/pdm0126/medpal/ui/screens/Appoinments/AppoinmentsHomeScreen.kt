@@ -67,9 +67,10 @@ fun AppointmentsHomeScreen(
 
     AppScaffold(
         DateUtils.format(getCurrentDate()),
+        TopBarCases.HOME,
+        true,
         currentRoute,
         onNavigateToItemClick,
-        TopBarCases.HOME,
         {},
         { onLogout() }) { paddingValues ->
 

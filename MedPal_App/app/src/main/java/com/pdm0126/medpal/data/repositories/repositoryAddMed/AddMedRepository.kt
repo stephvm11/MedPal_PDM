@@ -20,5 +20,4 @@ interface AddMedRepository {
         medicationId: Long,
         startDate: String
     ): Result<Unit>
-
 }
