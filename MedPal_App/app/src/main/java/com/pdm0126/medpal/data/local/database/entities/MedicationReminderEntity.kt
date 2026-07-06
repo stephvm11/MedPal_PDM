@@ -27,7 +27,7 @@ data class MedicationReminderEntity(
     val time: String,
     @ColumnInfo(name = "frecuencia_dias")
     val frequencyDays: Int,
-    @ColumnInfo(name = "ultima_dosis")
+    @ColumnInfo(name = "fecha_inicio")
     val lastDose: String? = null,
     @ColumnInfo(name = "id_medicamento")
     val medicationId: Long
@@ -38,6 +38,7 @@ fun MedicationReminderEntity.toModel(): MedicationReminder{
         id = id,
         time = time,
         frequencyDays = frequencyDays,
+        lastDose =  lastDose,
         medicationId = medicationId
     )
 }

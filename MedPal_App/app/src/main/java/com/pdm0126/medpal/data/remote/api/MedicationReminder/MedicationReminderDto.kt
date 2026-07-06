@@ -11,7 +11,7 @@ data class MedicationReminderDto(
     val time: String,
     @SerialName("frecuencia_dias")
     val frequencyDays: Int,
-    @SerialName("ultima_dosis")
+    @SerialName("fecha_inicio")
     val lastDose: String? = null,
     @SerialName("id_medicamento")
     val medicationId: Long

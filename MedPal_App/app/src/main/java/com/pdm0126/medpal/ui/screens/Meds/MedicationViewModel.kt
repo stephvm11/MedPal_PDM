@@ -19,7 +19,6 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import com.pdm0126.medpal.MedPalApplication
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import kotlinx.datetime.LocalTime
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -76,46 +75,26 @@ class MedicationViewModel(
                     } else {
                         relation.reminders.forEach { reminder ->
 
-                            val lastDoseDateTime = reminder.lastDose?.let {
+                            val startDateTime = reminder.lastDose?.let {
                                 try {
                                     LocalDateTime.parse(it, DateTimeFormatter.ISO_DATE_TIME)
                                 } catch (e: Exception) {
                                     null
                                 }
                             }
-                            val lastDoseDate = lastDoseDateTime?.toLocalDate()
+                            val startDate = startDateTime?.toLocalDate()
 
-                            val localTime = try {
-                                LocalTime.parse(reminder.time.take(5))
-                            } catch (e: Exception) {
-                                null
-                            }
+                            val isTakenToday = false
 
-                            val isTakenToday = if (lastDoseDate?.isEqual(today) == true) {
-                                if (lastDoseDateTime != null && localTime != null) {
-                                    !(lastDoseDateTime.toLocalTime().hour == localTime.hour &&
-                                            lastDoseDateTime.toLocalTime().minute == localTime.minute)
-                                } else {
-                                    true
-                                }
-                            } else {
-                                false
-                            }
+                            val displayTime = reminder.time.take(5)
 
-                            val displayTime = if (isTakenToday && lastDoseDateTime != null) {
-                                lastDoseDateTime.toLocalTime()
-                                    .format(DateTimeFormatter.ofPattern("HH:mm"))
-                            } else {
-                                reminder.time.take(5)
-                            }
-
-                            val isScheduledForToday = if (lastDoseDate == null) {
+                            val isScheduledForToday = if (startDate == null) {
                                 true
-                            } else if (lastDoseDate.isAfter(today)) {
+                            } else if (startDate.isAfter(today)) {
                                 false
                             } else {
-                                val daysSinceLastDose = ChronoUnit.DAYS.between(lastDoseDate, today)
-                                daysSinceLastDose % reminder.frequencyDays == 0L
+                                val daysSinceStartDate = ChronoUnit.DAYS.between(startDate, today)
+                                daysSinceStartDate % reminder.frequencyDays == 0L
                             }
 
                             if (isScheduledForToday) {
@@ -129,11 +108,11 @@ class MedicationViewModel(
                                     )
                                 )
                             } else {
-                                val daysRemaining = if (lastDoseDate == null) {
+                                val daysRemaining = if (startDate == null) {
                                     0
                                 } else {
                                     val daysSinceLastDose =
-                                        ChronoUnit.DAYS.between(lastDoseDate, today)
+                                        ChronoUnit.DAYS.between(startDate, today)
                                     val daysIntoCurrentCycle =
                                         daysSinceLastDose % reminder.frequencyDays
                                     (reminder.frequencyDays - daysIntoCurrentCycle).toInt()

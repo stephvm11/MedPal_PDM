@@ -81,7 +81,7 @@ class AddMedRepositoryImpl (
                 put("hora", time)
                 put("frecuencia_dias", frequencyDays)
                 put("id_medicamento", medicationId)
-                put("ultima_dosis", startDate)
+                put("fecha_inicio", startDate)
             }
 
             val responseList: List<MedicationReminderDto> = KtorClient.client.post("rest/v1/recordatorio_medicamento") {
