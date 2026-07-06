@@ -19,6 +19,9 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.minus
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.receiveAsFlow
 
 class AddAppointmentViewModel(
     private val repository: AddAppointmentRepository,
@@ -28,8 +31,8 @@ class AddAppointmentViewModel(
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
 
-    private val _event = MutableStateFlow<String>("")
-    val event = _event.asSharedFlow()
+    private val _event = Channel<String>()
+    val event = _event.receiveAsFlow()
 
     fun createAppointment(
         title: String,
@@ -52,32 +55,32 @@ class AddAppointmentViewModel(
                 place = place,
                 date = date.toString(),
                 time = time.toString(),
-                userId = userId.toInt()
+                userId = userId
             )
 
             result.onSuccess { appointmentId ->
                 if (hasReminder && reminderTime != null && frequency != null && startDay != null) {
-                    val startDate = date.minus(startDay.toLong(), DateTimeUnit.DAY)
+
+                    delay(300)
 
                     repository.createReminder(
                         appointmentId = appointmentId,
                         examId = null,
-                        startDay = startDate,
                         time = reminderTime,
                         frequencyDays = frequency.getDays() ?: 1,
                         daysBefore = startDay
                     ).onSuccess {
-                        _event.emit("Cita y recordatorio creados exitosamente")
+                        _event.send("Cita y recordatorio creados exitosamente")
                     }.onFailure { error ->
-                        _event.emit("Cita creada, pero error al crear recordatorio: ${error.message}")
+                        _event.send("Cita creada, pero error al crear recordatorio: ${error.message}")
                     }
                 } else {
-                    _event.emit("Cita creada exitosamente")
+                    _event.send("Cita creada exitosamente")
                 }
                 _isLoading.value = false
                 onSuccess()
             }.onFailure { error ->
-                _event.emit("Error al crear cita: ${error.message}")
+                _event.send("Error al crear cita: ${error.message}")
                 _isLoading.value = false
             }
         }

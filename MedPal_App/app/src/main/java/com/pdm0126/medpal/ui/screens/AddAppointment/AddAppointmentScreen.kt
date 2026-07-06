@@ -81,7 +81,9 @@ fun AddAppointmentScreen(
 
     LaunchedEffect(Unit) {
         viewModel.event.collect { message ->
-            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            if (message.isNotBlank()) {
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

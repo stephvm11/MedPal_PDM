@@ -29,7 +29,7 @@ class AddAppointmentRepositoryImpl(
         place: String,
         date: String,
         time: String,
-        userId: Int
+        userId: Long
     ): Result<Long> {
         return try {
             val jsonBody = buildJsonObject {
@@ -60,18 +60,26 @@ class AddAppointmentRepositoryImpl(
     override suspend fun createReminder(
         appointmentId: Long?,
         examId: Long?,
-        startDay: LocalDate,
         time: LocalTime,
         frequencyDays: Int,
         daysBefore: Int
     ): Result<Unit> {
         return try {
             val jsonBody = buildJsonObject {
-                put("dias_inicio", startDay.toString())
-                put("frecuencia", frequencyDays)
+                put("dias_inicio", daysBefore)
+                put("frecuencia", frequencyDays.toString())
                 put("hora", time.toString())
-                put("id_cita", appointmentId)
-                put("id_examen", examId)
+                if (appointmentId != null) {
+                    put("id_cita", appointmentId.toLong())
+                } else{
+                    put("id_cita", null as Long?)
+                }
+                if (examId != null) {
+                    put("id_examen", examId.toLong())
+                } else{
+                    put("id_examen", null as Long?)
+                }
+
             }
 
             val responseList: List<AppointmentReminderDto> =

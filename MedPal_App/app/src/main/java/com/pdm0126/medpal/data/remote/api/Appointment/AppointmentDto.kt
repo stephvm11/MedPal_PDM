@@ -26,7 +26,7 @@ data class AppointmentDto(
     val status: Boolean = false
 )
 
-fun AppointmentDto.toModel(): Appointment{
+fun AppointmentDto.toModel(): Appointment {
     return Appointment(
         id = id,
         title = title,
@@ -35,11 +35,12 @@ fun AppointmentDto.toModel(): Appointment{
         date = date,
         time = time,
         status = status,
-        userId = userId
+        userId = userId,
+
     )
 }
 
-fun AppointmentDto.toEntity(): AppointmentEntity{
+fun AppointmentDto.toEntity(): AppointmentEntity {
     return AppointmentEntity(
         id = id,
         title = title,

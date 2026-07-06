@@ -10,13 +10,12 @@ interface AddAppointmentRepository {
         place: String,
         date: String,
         time: String,
-        userId: Int
+        userId: Long
     ): Result<Long>
 
     suspend fun createReminder(
         appointmentId: Long?,
         examId: Long?,
-        startDay: LocalDate,
         time: LocalTime,
         frequencyDays: Int,
         daysBefore: Int
