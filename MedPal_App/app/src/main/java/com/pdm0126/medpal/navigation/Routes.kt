@@ -19,4 +19,9 @@ sealed class Routes : NavKey {
 
     @Serializable
     data object AddAppointmentForm : Routes()
+
+    @Serializable
+    data object Profile : Routes()
+
+
 }
