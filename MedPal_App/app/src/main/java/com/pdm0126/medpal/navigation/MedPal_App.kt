@@ -20,6 +20,7 @@ import com.pdm0126.medpal.ui.screens.Appoinments.AppointmentsHomeScreen
 import com.pdm0126.medpal.ui.screens.AddMed.AddMedicationScreen
 import com.pdm0126.medpal.ui.screens.Meds.MedsHomeScreen
 import com.pdm0126.medpal.ui.components.MedPalAlert
+import com.pdm0126.medpal.ui.screens.Profile.ProfileScreen
 
 
 @Composable
@@ -54,7 +55,7 @@ fun MedPal_App(
                 entry<Routes.Meds> {
                     MedsHomeScreen(
                         onNavigateToAddMedication = { backStack.add(Routes.MedsAddForm) },
-                        onNavigateToProfile = onLogout,
+                        onNavigateToProfile = {backStack.add(Routes.Profile)},
                         currentRoute = "medication",
                         onNavigateToItemClick = { route ->
                             if (route == "appointments") {
@@ -80,6 +81,18 @@ fun MedPal_App(
                         }
                     )
                 }
+
+                entry<Routes.Profile> {
+                    ProfileScreen(
+                        onCloseClick = {backStack.removeLastOrNull()},
+                        onNavigateToGuide = {},
+                        onNavigateToSettings = {},
+                        onSyncData = {},
+                        onNavigateToInfo = {},
+                        onLogoutClick = onLogout
+                    )
+                }
+
             }
         )
         activeAlert?.let { alert ->
