@@ -87,7 +87,6 @@ fun MedPal_App(
                         onCloseClick = {backStack.removeLastOrNull()},
                         onNavigateToSettings = {},
                         onSyncData = {},
-                        onNavigateToInfo = {},
                         onLogoutClick = onLogout
                     )
                 }
