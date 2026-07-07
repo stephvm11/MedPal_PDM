@@ -7,7 +7,7 @@ data class ExamWithReminders(
     @Embedded val exam: ExamEntity,
     @Relation(
         parentColumn = "id",
-        entityColumn = "id_exam"
+        entityColumn = "id_examen"
     )
     val reminders: List<AppointmentReminderEntity>
 )

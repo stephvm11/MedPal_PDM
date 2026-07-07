@@ -1,7 +1,11 @@
 package com.pdm0126.medpal.data.repositories.repositoryAddExam
 
+import com.pdm0126.medpal.data.local.database.dao.AppointmentDao
 import com.pdm0126.medpal.data.local.database.dao.AppointmentReminderDao
 import com.pdm0126.medpal.data.local.database.dao.ExamDao
+import com.pdm0126.medpal.data.model.Appointment
+import com.pdm0126.medpal.data.remote.api.Appointment.AppointmentDto
+import com.pdm0126.medpal.data.remote.api.Appointment.toModel
 import com.pdm0126.medpal.data.remote.api.AppointmentReminder.AppointmentReminderDto
 import com.pdm0126.medpal.data.remote.api.Exam.ExamDto
 import com.pdm0126.medpal.data.remote.api.KtorClient
@@ -14,13 +18,17 @@ import io.ktor.http.contentType
 import kotlinx.serialization.json.buildJsonObject
 import com.pdm0126.medpal.data.remote.api.Exam.toEntity
 import com.pdm0126.medpal.data.remote.api.AppointmentReminder.toEntity
+import io.ktor.client.request.get
+import io.ktor.client.request.parameter
 import kotlinx.datetime.LocalTime
+import kotlinx.datetime.toJavaLocalDate
 import kotlinx.serialization.json.put
 
 
 class AddExamRepositoryImpl(
     private val examDao: ExamDao,
-    private val appointmentReminderDao: AppointmentReminderDao
+    private val appointmentReminderDao: AppointmentReminderDao,
+    private val appointmentDao: AppointmentDao
 ) : AddExamRepository {
     override suspend fun createExam(
         title: String,
@@ -31,13 +39,12 @@ class AddExamRepositoryImpl(
             val jsonBody = buildJsonObject {
                 put("titulo", title)
                 put("id_cita", appointmentId)
-                put("place", place)
+                put("lugar", place)
                 put("estado_finalizacion", false)
             }
             val responseList: List<ExamDto> = KtorClient.client.post("rest/v1/examen") {
                 contentType(ContentType.Application.Json)
                 header("Prefer", "return=representation")
-                val jsonBody = null
                 setBody(jsonBody)
             }.body()
 
@@ -88,7 +95,20 @@ class AddExamRepositoryImpl(
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
 
+    override suspend fun getUserAppointments(userId: Long): Result<List<Appointment>> {
+        return try {
+            val appointments: List<AppointmentDto> = KtorClient.client.get("rest/v1/cita") {
+                parameter("id_usuario", "eq.$userId")
+            }.body()
+
+            val result = appointments.map { it.toModel() }
+
+            Result.success(result)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 }
 

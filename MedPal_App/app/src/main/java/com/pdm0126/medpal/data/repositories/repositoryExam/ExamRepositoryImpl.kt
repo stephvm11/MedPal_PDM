@@ -31,7 +31,10 @@ class ExamRepositoryImpl(
     override suspend fun refresh(userId: Long): Result<Unit> {
         return try {
             val exams: List<ExamDto> =
-                KtorClient.client.get("rest/v1/examen") { parameter("id_usuario", "eq.$userId") }
+                KtorClient.client.get("rest/v1/examen") {
+                    parameter("select", "*,cita!inner(id_usuario)")
+                    parameter("cita.id_usuario", "eq.$userId")
+                }
                     .body()
             exams.forEach { println("   - ${it.title} (${it.place})") }
 
