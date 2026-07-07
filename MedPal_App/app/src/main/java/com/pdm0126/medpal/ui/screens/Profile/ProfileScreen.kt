@@ -39,6 +39,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import com.pdm0126.medpal.ui.components.ImportantInfoModal
+import com.pdm0126.medpal.ui.components.LogoutDialog
 import com.pdm0126.medpal.ui.components.UserGuideModal
 
 @Composable
@@ -56,6 +57,7 @@ fun ProfileScreen(
 
     var isGuideVisible by remember{ mutableStateOf(false) }
     var isInfoVisible by remember{ mutableStateOf(false) }
+    var isLogoutVisible by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -167,7 +169,7 @@ fun ProfileScreen(
             }
 
             Button(
-                onClick = onLogoutClick,
+                onClick = {isLogoutVisible = true},
                 modifier = buttonModifier,
                 colors = buttonColors,
                 shape = buttonShape
@@ -184,6 +186,15 @@ fun ProfileScreen(
         ImportantInfoModal(
             isVisible = isInfoVisible,
             onCloseClick = { isInfoVisible = false }
+        )
+
+        LogoutDialog (
+            isVisible = isLogoutVisible,
+            onDismiss = { isLogoutVisible = false },
+            onConfirm = {
+                isLogoutVisible = false
+                onLogoutClick()
+            }
         )
     }
 }
