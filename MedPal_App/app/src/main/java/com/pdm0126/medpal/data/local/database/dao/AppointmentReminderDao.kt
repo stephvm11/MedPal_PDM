@@ -12,6 +12,15 @@ interface AppointmentReminderDao {
     @Query("SELECT * FROM recordatorio_cita WHERE id_cita = :appointmentId")
     fun getRemindersOfAppointment(appointmentId: Long): Flow<List<AppointmentReminderEntity>>
 
+    @Query("SELECT * FROM recordatorio_cita WHERE id_examen = :examId")
+    fun getRemindersOfExam(examId: Long): Flow<List<AppointmentReminderEntity>>
+
+    @Query("""
+        SELECT * FROM recordatorio_cita 
+        WHERE id_cita = :id OR id_examen = :id
+    """)
+    fun getRemindersByRelatedId(id: Long): Flow<List<AppointmentReminderEntity>>
+
     @Query("SELECT * FROM recordatorio_cita WHERE id = :reminderId LIMIT 1")
     suspend fun getReminderById(reminderId: Long): AppointmentReminderEntity?
 
