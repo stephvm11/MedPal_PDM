@@ -31,7 +31,7 @@ class AppProvider(context: Context){
                 val userSession = UserSession(
                     accessToken = savedToken,
                     refreshToken = savedRefresh,
-                    expiresIn = 3600L,
+                    expiresIn = 0L,
                     tokenType = "bearer",
                     user = null
                 )

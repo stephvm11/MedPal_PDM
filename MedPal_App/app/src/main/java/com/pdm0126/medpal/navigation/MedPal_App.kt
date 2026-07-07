@@ -42,7 +42,7 @@ fun MedPal_App(
             entryProvider = entryProvider {
                 entry<Routes.Appoinments> {
                     AppointmentsHomeScreen(
-                        onLogout = onLogout,
+                        onNavigateToProfile = {backStack.add(Routes.Profile)},
                         currentRoute = "appointments",
                         onNavigateToItemClick = { route ->
                             if (route == "medication") {
@@ -85,7 +85,6 @@ fun MedPal_App(
                 entry<Routes.Profile> {
                     ProfileScreen(
                         onCloseClick = {backStack.removeLastOrNull()},
-                        onNavigateToGuide = {},
                         onNavigateToSettings = {},
                         onSyncData = {},
                         onNavigateToInfo = {},

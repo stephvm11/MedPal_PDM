@@ -36,11 +36,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pdm0126.medpal.R
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import com.pdm0126.medpal.ui.components.UserGuideModal
 
 @Composable
 fun ProfileScreen(
     onCloseClick: () -> Unit,
-    onNavigateToGuide: () -> Unit = {},
     onNavigateToSettings: () -> Unit = {},
     onSyncData: () -> Unit = {},
     onNavigateToInfo: () -> Unit = {},
@@ -51,6 +53,8 @@ fun ProfileScreen(
     val user by viewModel.user.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
+
+    var isGuideVisible by remember{ mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -121,7 +125,7 @@ fun ProfileScreen(
             val buttonShape = RoundedCornerShape(24.dp)
 
             Button(
-                onClick = onNavigateToGuide,
+                onClick = { isGuideVisible = true },
                 modifier = buttonModifier,
                 colors = buttonColors,
                 shape = buttonShape
@@ -170,5 +174,9 @@ fun ProfileScreen(
                 Text(text = "Cerrar Sesión", fontSize = 16.sp, fontWeight = FontWeight.Medium)
             }
         }
+        UserGuideModal(
+            isVisible = isGuideVisible,
+            onCloseClick = { isGuideVisible = false }
+        )
     }
 }
