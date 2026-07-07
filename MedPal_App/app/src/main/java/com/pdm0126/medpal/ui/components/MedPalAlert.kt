@@ -50,7 +50,7 @@ fun MedPalAlert(
                 )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     TextButton(onClick = onOmit) {
                         Text("Omitir", color = MaterialTheme.colorScheme.error)

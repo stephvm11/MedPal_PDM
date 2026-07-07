@@ -26,8 +26,8 @@ object ReminderAlarmManager {
         val intent = Intent(context, AlertReceiver::class.java).apply {
             putExtra("ALERT_ID", reminderId)
             putExtra("ALERT_TYPE", "MEDICAMENTO")
-            putExtra("ALERT_TITLE", "Hora de tu medicamento ")
-            putExtra("ALERT_SUBTITLE", "Es momento de tomar $medicationName : $dosage")
+            putExtra("ALERT_TITLE", "Hora de tu medicamento!! ")
+            putExtra("ALERT_SUBTITLE", "Es momento de tomar: $medicationName || $dosage")
         }
 
         val pendingIntent = PendingIntent.getBroadcast(
