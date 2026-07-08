@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import com.pdm0126.medpal.R
 import com.pdm0126.medpal.data.model.Appointment
 import com.pdm0126.medpal.ui.screens.Appoinments.formatDate
+import com.pdm0126.medpal.ui.screens.Appoinments.getCurrentDate
 
 @Composable
 fun AppointmentDropdown(
@@ -34,9 +35,20 @@ fun AppointmentDropdown(
     onAppointmentSelected: (Appointment) -> Unit,
     label: String = "Cita asociada",
     modifier: Modifier = Modifier,
-    isError: Boolean = false
+    isError: Boolean = false,
+    filterPast: Boolean = true,
+    filterCompleted: Boolean = true
 ) {
     var expanded by remember { mutableStateOf(false) }
+    val today = getCurrentDate()
+
+    val filterAppointments = when{
+        filterPast && filterCompleted -> appointments.filter {
+            it.date >= today && !it.status
+        }
+        filterPast -> appointments.filter { it.date >= today }
+        else -> appointments
+    }
 
     Column(modifier = Modifier.fillMaxWidth()) {
         OutlinedTextField(
@@ -71,7 +83,7 @@ fun AppointmentDropdown(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
         ) {
-            if (appointments.isEmpty()) {
+            if (filterAppointments.isEmpty()) {
                 DropdownMenuItem(
                     text = {
                         Text(
@@ -83,24 +95,24 @@ fun AppointmentDropdown(
                     onClick = { expanded = false }
                 )
             } else {
-                appointments.forEach { appointment ->
+                filterAppointments.forEach { filterAppointment ->
                     DropdownMenuItem(
                         text = {
                             Column {
                                 Text(
-                                    text = appointment.title,
+                                    text = filterAppointment.title,
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.SemiBold
                                 )
                                 Text(
-                                    text = formatDate(appointment.date),
+                                    text = formatDate(filterAppointment.date),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = Color.Black.copy(alpha = 0.6f)
                                 )
                             }
                         },
                         onClick = {
-                            onAppointmentSelected(appointment)
+                            onAppointmentSelected(filterAppointment)
                             expanded = false
                         }
                     )
