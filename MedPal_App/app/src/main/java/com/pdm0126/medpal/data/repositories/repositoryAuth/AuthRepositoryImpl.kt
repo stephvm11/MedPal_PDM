@@ -35,33 +35,15 @@ class AuthRepositoryImpl(
 
     init {
         CoroutineScope(Dispatchers.IO).launch {
+            val savedToken = sessionManager.accessToken.first()
+            if (savedToken != null) {
+                KtorClient.accessToken = savedToken
+            }
             SupabaseClient.client.auth.sessionStatus.collect { status ->
-                if (status is SessionStatus.Authenticated) {
-                    val session = status.session
-
-                    KtorClient.accessToken = session.accessToken
-
-                    val currentStoredToken = sessionManager.accessToken.first()
-
-                    if (currentStoredToken != session.accessToken) {
-
-                        val userId = try {
-                            val userInfo: List<UserDto> = KtorClient.client.get("rest/v1/usuario") {
-                                parameter("auth_user_id", "eq.${session.user?.id}")
-                            }.body()
-
-                            userInfo.firstOrNull()?.id?.toString() ?: ""
-                        } catch (e: Exception) {
-
-                            "Error: ${e.message}"
-                        }
-
-                        sessionManager.saveSession(
-                            accessToken = session.accessToken,
-                            refreshToken = session.refreshToken,
-                            userId = userId
-                        )
-                    }
+                if (status is SessionStatus.NotAuthenticated) {
+                    KtorClient.accessToken = null
+                } else if (status is SessionStatus.Authenticated) {
+                    KtorClient.accessToken = status.session.accessToken
                 }
             }
         }
@@ -178,11 +160,19 @@ class AuthRepositoryImpl(
     }
 
     override suspend fun logout() {
-        SupabaseClient.client.auth.signOut()
+        try {
+            SupabaseClient.client.auth.signOut()
+        } catch (e: Exception) {
+        } finally {
 
-        sessionManager.clearSession()
+            try {
+                userDao.clearAllTables()
+            } catch (e: Exception) {
+            }
+            sessionManager.clearSession()
 
-        KtorClient.accessToken = null
+            KtorClient.accessToken = null
+        }
     }
 
     override fun getCurrentUser(id: Long): Flow<UserEntity?> {

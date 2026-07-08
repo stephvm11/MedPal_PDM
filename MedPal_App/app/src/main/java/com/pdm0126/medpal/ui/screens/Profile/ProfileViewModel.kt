@@ -16,6 +16,8 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import com.pdm0126.medpal.data.repositories.repositorySync.SyncRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import java.lang.System.currentTimeMillis
 
 class ProfileViewModel (
@@ -44,40 +46,41 @@ class ProfileViewModel (
         loadUserData()
     }
 
-    private fun loadUserData(){
+    private fun loadUserData() {
         _error.value = null
         _isLoading.value = true
         viewModelScope.launch {
             try {
-                authRepository.userId.collect { userId ->
+                authRepository.userId.flatMapLatest { userId ->
                     val id = userId?.toLongOrNull()
-
-                    if (id != null){
-                        authRepository.getCurrentUser(id).collect { userData ->
-                            if (userData != null){
-                                _user.value = User(
-                                    id = userData.id,
-                                    authUserId = userData.authUserId,
-                                    firstName = userData.firstName,
-                                    lastName = userData.lastName,
-                                )
-                            } else {
-                                _error.value = "No se encontro el perfil en la base de datos local"
-                            }
-                            _isLoading.value = false
-                        }
-                    } else{
-                        _error.value = "Sesion invalidad o ID no encontrado"
-                        _isLoading.value = false
+                    if (id != null) {
+                        authRepository.getCurrentUser(id)
+                    } else {
+                        flowOf(null)
                     }
+                }.collect { userData ->
+                    if (userData != null) {
+                        _user.value = User(
+                            id = userData.id,
+                            authUserId = userData.authUserId,
+                            firstName = userData.firstName,
+                            lastName = userData.lastName,
+                        )
+                        _error.value = null
+                    } else {
+                        _user.value = null
+                        if (!_isLoading.value) {
+                            _error.value = "Sesión inválida o ID no encontrado"
+                        }
+                    }
+                    _isLoading.value = false
                 }
-            } catch (e: Exception){
+            } catch (e: Exception) {
                 _error.value = e.localizedMessage
                 _isLoading.value = false
             }
         }
     }
-
     fun syncAppMedsAndAppointments(userId: Long) {
 
         val currentTime = currentTimeMillis()
