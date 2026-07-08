@@ -16,6 +16,15 @@ fun FormTextField(
     label: String,
     placeholder: String = "",
 ){
+    val textFieldColors = OutlinedTextFieldDefaults.colors(
+        focusedTextColor = colorResource(R.color.beige),
+        unfocusedTextColor = colorResource(R.color.beige),
+        focusedLabelColor = colorResource(R.color.beige),
+        unfocusedLabelColor = colorResource(R.color.beige),
+        focusedBorderColor = colorResource(R.color.beige),
+        unfocusedBorderColor = colorResource(R.color.beige)
+    )
+
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
@@ -23,9 +32,6 @@ fun FormTextField(
         placeholder = { Text(text = placeholder) },
         modifier = Modifier.Companion.fillMaxWidth(),
         singleLine = true,
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = colorResource(R.color.rosy_brown),
-            unfocusedBorderColor = colorResource(R.color.midnight_green).copy(alpha = 0.3f)
-        )
+        colors =  textFieldColors
     )
 }
