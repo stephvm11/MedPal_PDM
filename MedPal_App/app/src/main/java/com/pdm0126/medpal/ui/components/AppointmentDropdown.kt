@@ -36,14 +36,18 @@ fun AppointmentDropdown(
     label: String = "Cita asociada",
     modifier: Modifier = Modifier,
     isError: Boolean = false,
-    filterPast: Boolean = true
+    filterPast: Boolean = true,
+    filterCompleted: Boolean = true
 ) {
     var expanded by remember { mutableStateOf(false) }
     val today = getCurrentDate()
-    val filterAppointments = if (filterPast) {
-        appointments.filter { it.date >= today }
-    } else {
-        appointments
+
+    val filterAppointments = when{
+        filterPast && filterCompleted -> appointments.filter {
+            it.date >= today && !it.status
+        }
+        filterPast -> appointments.filter { it.date >= today }
+        else -> appointments
     }
 
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -79,7 +83,7 @@ fun AppointmentDropdown(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
         ) {
-            if (appointments.isEmpty()) {
+            if (filterAppointments.isEmpty()) {
                 DropdownMenuItem(
                     text = {
                         Text(
@@ -91,24 +95,24 @@ fun AppointmentDropdown(
                     onClick = { expanded = false }
                 )
             } else {
-                appointments.forEach { appointment ->
+                filterAppointments.forEach { filterAppointment ->
                     DropdownMenuItem(
                         text = {
                             Column {
                                 Text(
-                                    text = appointment.title,
+                                    text = filterAppointment.title,
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.SemiBold
                                 )
                                 Text(
-                                    text = formatDate(appointment.date),
+                                    text = formatDate(filterAppointment.date),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = Color.Black.copy(alpha = 0.6f)
                                 )
                             }
                         },
                         onClick = {
-                            onAppointmentSelected(appointment)
+                            onAppointmentSelected(filterAppointment)
                             expanded = false
                         }
                     )
