@@ -176,6 +176,15 @@ fun AppoinmentCard(
                             Icon(
                                 imageVector = Icons.Filled.CheckBox,
                                 contentDescription = "Cita completada",
+                                tint = colorResource(R.color.beige).copy(alpha = 0.5f),
+                                modifier = Modifier.size(40.dp)
+                            )
+                        }
+
+                        else -> {
+                            Icon(
+                                imageVector = Icons.Outlined.CheckBoxOutlineBlank,
+                                contentDescription = "Cita sin completar",
                                 tint = colorResource(R.color.beige),
                                 modifier = Modifier.size(40.dp)
                             )
