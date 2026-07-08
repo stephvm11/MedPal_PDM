@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckBox
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.outlined.CheckBoxOutlineBlank
+import androidx.compose.material.icons.outlined.DisabledByDefault
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -31,25 +32,39 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pdm0126.medpal.R
+import com.pdm0126.medpal.data.model.Appointment
 import com.pdm0126.medpal.data.model.Exam
+import com.pdm0126.medpal.ui.screens.Appoinments.getCurrentDate
 
 @Composable
 fun ExamCard(
     exam: Exam,
+    associatedAppointment: Appointment?,
     onToggleComplete: (Long) -> Unit
 ) {
     val isDone = exam.status
+    val today = getCurrentDate()
+
+    val examdate = associatedAppointment?.date
+    val isPast = examdate != null && examdate < today
+    val isExpired = isPast && !isDone
 
     OutlinedCard(
         modifier = Modifier.size(200.dp, 200.dp),
         colors = CardDefaults.outlinedCardColors(
-            containerColor = if (isDone) colorResource(R.color.moss_green).copy(alpha = 0.5f)
-            else
-                colorResource(R.color.moss_green)
+            containerColor = when {
+                isPast -> colorResource(R.color.rosy_brown).copy(alpha = 0.5f)
+                isDone -> colorResource(R.color.moss_green).copy(alpha = 0.5f)
+                else -> colorResource(R.color.moss_green)
+            }
         ),
         border = BorderStroke(
             width = 3.dp,
-            color = if (isDone) colorResource(R.color.beige).copy(alpha = 0.5f) else colorResource(R.color.beige)
+            color = when {
+                isPast -> colorResource(R.color.beige).copy(alpha = 0.5f)
+                isDone -> colorResource(R.color.beige).copy(alpha = 0.5f)
+                else -> colorResource(R.color.beige)
+            }
         ),
         shape = CardDefaults.outlinedShape
     ) {
@@ -70,14 +85,13 @@ fun ExamCard(
                     textAlign = TextAlign.Center
                 )
                 Text(
-                    text = " De: Cita asociada",
-                    style = MaterialTheme.typography.titleMedium,
+                    text = "De cita: ${associatedAppointment?.title?: ""}",
+                    style = MaterialTheme.typography.titleSmall,
                     color = Color.White,
-                    fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Left
                 )
                 HorizontalDivider(
                     modifier = Modifier.padding(vertical = 10.dp),
@@ -106,19 +120,44 @@ fun ExamCard(
                 Spacer(modifier = Modifier.height(5.dp))
 
                 IconButton(
-                    onClick = { onToggleComplete(exam.id) },
+                    onClick = {
+                        if (!isPast) {
+                            onToggleComplete(exam.id)
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .align(Alignment.End)
+                        .align(Alignment.End),
+                    enabled = !isPast
                 ) {
-                    Icon(
-                        imageVector = if (isDone) Icons.Filled.CheckBox else Icons.Outlined.CheckBoxOutlineBlank,
-                        contentDescription = if (isDone) "Marcar como pendiente" else "Marcar como completada",
-                        tint = if (isDone) colorResource(R.color.beige).copy(alpha = 0.5f) else colorResource(
-                            R.color.beige
-                        ),
-                        modifier = Modifier.size(40.dp)
-                    )
+                    when {
+                        isExpired -> {
+                            Icon(
+                                imageVector = Icons.Outlined.DisabledByDefault,
+                                contentDescription = "Examen vencida sin completar",
+                                tint = colorResource(R.color.beige).copy(alpha = 0.5f),
+                                modifier = Modifier.size(40.dp)
+                            )
+                        }
+
+                        isDone -> {
+                            Icon(
+                                imageVector = Icons.Filled.CheckBox,
+                                contentDescription = "Examen completado",
+                                tint = colorResource(R.color.beige).copy(alpha = 0.5f),
+                                modifier = Modifier.size(40.dp)
+                            )
+                        }
+
+                        else -> {
+                            Icon(
+                                imageVector = Icons.Outlined.CheckBoxOutlineBlank,
+                                contentDescription = "Examen sin completar",
+                                tint = colorResource(R.color.beige),
+                                modifier = Modifier.size(40.dp)
+                            )
+                        }
+                    }
                 }
             }
         }
