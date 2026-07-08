@@ -40,7 +40,7 @@ fun MedOfDayCard(
     onMarkTaken: () -> Unit,
     modifier: Modifier = Modifier
 ){
-    val containerColor = if (isTakenToday) colorResource(R.color.midnight_green) else Color(0xFFC62828)
+    val containerColor = if (isTakenToday) colorResource(R.color.midnight_green) else colorResource(R.color.rosy_brown)
     val contentColor = Color.White
 
     Card(

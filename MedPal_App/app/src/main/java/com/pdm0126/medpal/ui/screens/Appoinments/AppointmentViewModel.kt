@@ -39,11 +39,13 @@ class AppointmentViewModel(
         appointmentRepository.getAppointmentsWithReminders(userId)
             .map { withReminders ->
                 withReminders.map { it.appointment.toModel() }
-                    .sortedWith(compareBy(
-                        {it.status},
-                        {it.date},
-                        {it.time}
-                    ))
+                    .sortedWith(
+                        compareBy(
+                            { it.date < getCurrentDate() },
+                            { it.status },
+                            { it.date },
+                            { it.time }
+                        ))
             }
             .stateIn(
                 scope = viewModelScope,
@@ -61,6 +63,16 @@ class AppointmentViewModel(
                 started = SharingStarted.WhileSubscribed(5_000),
                 initialValue = emptyList()
             )
+    val nextAppointment: StateFlow<Appointment?> = appointments
+        .map { list ->
+            list.filter { it.date >= getCurrentDate() && !it.status }
+                .minByOrNull { it.date }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = null
+        )
 
     init {
         loadAppointments()

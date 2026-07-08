@@ -97,7 +97,6 @@ fun MedPal_App(
                 entry<Routes.Profile> {
                     ProfileScreen(
                         onCloseClick = { backStack.removeLastOrNull() },
-                        onNavigateToGuide = {},
                         onNavigateToSettings = {},
                         onSyncData = {},
                         onLogoutClick = onLogout

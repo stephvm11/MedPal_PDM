@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -55,7 +56,7 @@ fun CustomTopBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .windowInsetsPadding(WindowInsets.statusBars)
-                .padding(start = 5.dp, top = 10.dp, end = 5.dp, bottom = 10.dp),
+                .padding(start = 16.dp, top = 10.dp, end = 16.dp, bottom = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -65,8 +66,8 @@ fun CustomTopBar(
                         Icon(
                             imageVector = Icons.Default.ArrowBackIosNew,
                             contentDescription = "Atrás",
-                            tint = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.height(50.dp)
+                            tint = Color.White,
+                            modifier = Modifier.height(55.dp)
                         )
                     }
                 }
@@ -76,8 +77,8 @@ fun CustomTopBar(
                         Icon(
                             imageVector = Icons.Default.CalendarMonth,
                             contentDescription = "Calendario",
-                            tint = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.height(50.dp)
+                            tint = Color.White,
+                            modifier = Modifier.height(55.dp)
                         )
                     }
                 }
@@ -87,8 +88,8 @@ fun CustomTopBar(
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = "Cerrar",
-                            tint = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.height(50.dp)
+                            tint = Color.White,
+                            modifier = Modifier.height(55.dp)
                         )
                     }
                 }
@@ -98,8 +99,8 @@ fun CustomTopBar(
 
             Text(
                 text = title,
-                color = MaterialTheme.colorScheme.onPrimary,
-                style = MaterialTheme.typography.titleMedium,
+                color = Color.White,
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold
 
             )
@@ -111,8 +112,8 @@ fun CustomTopBar(
                         Icon(
                             imageVector = Icons.Default.Person,
                             contentDescription = "Perfil",
-                            tint = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.height(50.dp)
+                            tint = Color.White,
+                            modifier = Modifier.height(55.dp)
                         )
                     }
                 }
@@ -123,8 +124,8 @@ fun CustomTopBar(
                         modifier = Modifier
                             .width(110.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = colorResource(R.color.rosy_brown),
-                        )
+                             containerColor = if (isSaveEnabled) colorResource(R.color.rosy_brown) else colorResource(R.color.rosy_brown).copy(alpha = 0.7f), contentColor = Color.White
+                        ), enabled = isSaveEnabled
                     ) {
                         Text(
                             text = "Guardar",
