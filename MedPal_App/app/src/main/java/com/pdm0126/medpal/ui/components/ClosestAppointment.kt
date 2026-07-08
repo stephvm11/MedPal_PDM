@@ -63,7 +63,7 @@ fun ClosestAppoinment(
                 if (appointment != null){
                     Text(
                         text = appointment.title,
-                        style = MaterialTheme.typography.headlineSmall,
+                        style = MaterialTheme.typography.headlineLarge,
                         color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
@@ -75,9 +75,9 @@ fun ClosestAppoinment(
                             daysRemaining == 1 -> "Mañana tienes tu cita médica"
                             else -> "En $daysRemaining días"
                         },
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = colorResource(color.rosy_brown).copy(alpha = 0.8f),
-                        fontWeight = FontWeight.SemiBold
+                        style = MaterialTheme.typography.titleLarge,
+                        color = colorResource(color.rosy_brown),
+                        fontWeight = FontWeight.Bold
                     )
                 } else {
                     Text(

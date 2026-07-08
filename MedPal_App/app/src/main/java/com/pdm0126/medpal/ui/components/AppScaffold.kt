@@ -32,7 +32,6 @@ fun AppScaffold(
     onCloseClick: () -> Unit = {},
     onBackClick: () -> Unit = {},
     isSaveEnabled: Boolean = true,
-    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     floatingActionButton: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit
 ) {
@@ -59,20 +58,6 @@ fun AppScaffold(
                 )
             }
         },
-        snackbarHost = {
-            SnackbarHost(
-                hostState = snackbarHostState,
-                modifier = Modifier.padding(16.dp)
-            ) { data ->
-                Snackbar(
-                    snackbarData = data,
-                    containerColor = colorResource(R.color.rosy_brown),
-                    contentColor = Color.White,
-                    shape = MaterialTheme.shapes.medium,
-                    actionColor = Color.White
-                )
-            }
-        }
     ) { paddingValues ->
         content(paddingValues)
     }

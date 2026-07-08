@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -22,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.unit.dp
 import com.pdm0126.medpal.R
 import kotlinx.datetime.LocalTime
 
@@ -40,7 +42,7 @@ fun FormTimePicker(
     val timePickerState = rememberTimePickerState(
         initialHour = value.hour,
         initialMinute = value.minute,
-        is24Hour = true
+        is24Hour = false
     )
 
     Box(

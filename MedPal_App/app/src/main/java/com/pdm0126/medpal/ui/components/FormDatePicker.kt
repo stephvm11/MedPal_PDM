@@ -2,6 +2,7 @@ package com.pdm0126.medpal.ui.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.OutlinedTextField
@@ -18,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.unit.dp
 import com.pdm0126.medpal.R
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.number
@@ -48,7 +50,7 @@ fun FormDatePicker(
         label = { Text(text = label) },
         readOnly = true,
         enabled = true,
-         modifier = Modifier
+         modifier = Modifier.width(200.dp)
              .onFocusChanged { focusState ->
              if (focusState.isFocused) {
                  showDialog = true

@@ -16,6 +16,7 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -34,22 +35,22 @@ data class NavigationItem(
 fun CustomNavigationBar(currentRoute: String, onItemClick: (String) -> Unit) {
     val items = listOf(
         NavigationItem(
-            "Medicamentos",
-            Icons.Outlined.Medication,
-            Icons.Default.Medication,
-            "medication"
-        ),
-        NavigationItem(
             "Citas / Exámenes",
             Icons.Outlined.MedicalInformation,
             Icons.Default.MedicalInformation,
             "appointments"
+        ),
+        NavigationItem(
+            "Medicamentos",
+            Icons.Outlined.Medication,
+            Icons.Default.Medication,
+            "medication"
         )
     )
 
     NavigationBar(
         modifier = Modifier.fillMaxWidth(),
-        containerColor = MaterialTheme.colorScheme.onPrimary,
+        containerColor = Color.White,
         windowInsets = NavigationBarDefaults.windowInsets
     ) {
         items.forEach { item ->

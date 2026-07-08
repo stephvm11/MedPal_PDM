@@ -151,7 +151,7 @@ fun AddAppointmentScreen(
                     value = time,
                     onValueChange = { time = it },
                     label = "Hora de la cita",
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(2f)
                 )
             }
 

@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.outlined.CheckBox
 import androidx.compose.material.icons.outlined.CheckBoxOutlineBlank
+import androidx.compose.material.icons.outlined.DisabledByDefault
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -41,6 +42,7 @@ import com.pdm0126.medpal.R
 import com.pdm0126.medpal.data.model.Appointment
 import com.pdm0126.medpal.ui.screens.Appoinments.formatDate
 import com.pdm0126.medpal.ui.screens.Appoinments.formatTime
+import com.pdm0126.medpal.ui.screens.Appoinments.getCurrentDate
 
 @Composable
 fun AppoinmentCard(
@@ -48,18 +50,27 @@ fun AppoinmentCard(
     onToggleComplete: (Long) -> Unit
 ) {
     val isDone = appointment.status
+    val today = getCurrentDate()
+    val isPast = appointment.date < today
+    val isExpired = isPast && !isDone
 
     OutlinedCard(
         modifier = Modifier
             .size(200.dp, 200.dp),
         colors = CardDefaults.outlinedCardColors(
-            containerColor = if (isDone) colorResource(R.color.moss_green).copy(alpha = 0.5f)
-            else
-                colorResource(R.color.moss_green)
+            containerColor = when {
+                isPast -> colorResource(R.color.rosy_brown).copy(alpha = 0.5f)
+                isDone -> colorResource(R.color.moss_green).copy(alpha = 0.5f)
+                else -> colorResource(R.color.moss_green)
+            }
         ),
         border = BorderStroke(
             width = 3.dp,
-            color = if (isDone) colorResource(R.color.beige).copy(alpha = 0.5f) else colorResource(R.color.beige)
+            color = when {
+                isPast -> colorResource(R.color.beige).copy(alpha = 0.5f)
+                isDone -> colorResource(R.color.beige).copy(alpha = 0.5f)
+                else -> colorResource(R.color.beige)
+            }
         ),
         shape = CardDefaults.outlinedShape
     ) {
@@ -139,20 +150,37 @@ fun AppoinmentCard(
                     color = Color.White,
                     modifier = Modifier.padding(start = 25.dp)
                 )
+
                 IconButton(
-                    onClick = { onToggleComplete(appointment.id) },
+                    onClick = {
+                        if (!isPast) {
+                            onToggleComplete(appointment.id)
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .align(Alignment.End)
+                        .align(Alignment.End),
+                    enabled = !isPast
                 ) {
-                    Icon(
-                        imageVector = if (isDone) Icons.Filled.CheckBox else Icons.Outlined.CheckBoxOutlineBlank,
-                        contentDescription = if (isDone) "Marcar como pendiente" else "Marcar como completada",
-                        tint = if (isDone) colorResource(R.color.beige).copy(alpha = 0.5f) else colorResource(
-                            R.color.beige
-                        ),
-                        modifier = Modifier.size(40.dp)
-                    )
+                    when {
+                        isExpired -> {
+                            Icon(
+                                imageVector = Icons.Outlined.DisabledByDefault,
+                                contentDescription = "Cita vencida sin completar",
+                                tint = colorResource(R.color.beige).copy(alpha = 0.5f),
+                                modifier = Modifier.size(40.dp)
+                            )
+                        }
+
+                        isDone -> {
+                            Icon(
+                                imageVector = Icons.Filled.CheckBox,
+                                contentDescription = "Cita completada",
+                                tint = colorResource(R.color.beige),
+                                modifier = Modifier.size(40.dp)
+                            )
+                        }
+                    }
                 }
             }
         }

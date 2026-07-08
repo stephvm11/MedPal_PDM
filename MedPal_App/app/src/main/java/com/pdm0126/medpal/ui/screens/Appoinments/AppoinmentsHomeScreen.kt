@@ -72,6 +72,7 @@ fun AppointmentsHomeScreen(
 
     val context = LocalContext.current
     val appointments by appointmentViewModel.appointments.collectAsStateWithLifecycle()
+    val nextAppointment by appointmentViewModel.nextAppointment.collectAsStateWithLifecycle()
     val exams by examViewModel.exams.collectAsStateWithLifecycle()
     val isLoadingAppointments by appointmentViewModel.isLoading.collectAsState()
     val isLoadingExams by examViewModel.isLoading.collectAsState()
@@ -79,9 +80,6 @@ fun AppointmentsHomeScreen(
     val errorExams by examViewModel.error.collectAsState()
     val refreshExams by examViewModel.refreshing.collectAsState()
     val refreshAppointments by appointmentViewModel.refreshing.collectAsState()
-
-    val nextAppointment =
-        appointments.filter { it.date >= getCurrentDate() }.minByOrNull { it.date }
 
     LaunchedEffect(errorAppointments) {
         errorAppointments?.let {
@@ -218,7 +216,7 @@ fun AppointmentsHomeScreen(
                                                 appointments.find { it.id == appoinmentId }
                                             if (currentAppointment != null) {
                                                 if (currentAppointment.status) {
-                                                    appointmentViewModel.completeAppointment(
+                                                    appointmentViewModel.uncompleteAppointment(
                                                         appoinmentId
                                                     )
                                                 } else {
