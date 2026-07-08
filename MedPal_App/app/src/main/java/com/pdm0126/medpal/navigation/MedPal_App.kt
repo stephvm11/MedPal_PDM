@@ -22,6 +22,7 @@ import com.pdm0126.medpal.ui.screens.Meds.MedsHomeScreen
 import com.pdm0126.medpal.ui.components.MedPalAlert
 import com.pdm0126.medpal.ui.screens.AddExam.AddExamScreen
 import com.pdm0126.medpal.ui.screens.Profile.ProfileScreen
+import com.pdm0126.medpal.ui.screens.calendar.CalendarScreen
 
 
 @Composable
@@ -44,6 +45,7 @@ fun MedPal_App(
                 entry<Routes.Appoinments> {
                     AppointmentsHomeScreen(
                         onNavigateToProfile = { backStack.add(Routes.Profile) },
+                        onNavigateToCalendar = {backStack.add(Routes.Calendar)},
                         currentRoute = "appointments",
                         onNavigateToItemClick = { route ->
                             if (route == "medication") {
@@ -53,6 +55,11 @@ fun MedPal_App(
                         onAddAppointmentClick = { backStack.add(Routes.AddAppointmentForm) },
                         onAddExamClick = { backStack.add(Routes.AddExamForm) }
                     )
+                }
+                entry<Routes.Calendar> {
+                    CalendarScreen(
+                        onAddAppointmentClick = { backStack.add(Routes.AddAppointmentForm) },
+                        onAddExamClick = { backStack.add(Routes.AddExamForm) })
                 }
                 entry<Routes.Meds> {
                     MedsHomeScreen(

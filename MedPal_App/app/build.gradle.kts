@@ -67,6 +67,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.material3)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -95,4 +96,5 @@ dependencies {
     implementation(libs.supabase.auth)
     implementation(libs.supabase.postgrest)
     implementation(libs.androidx.datastore.preferences)
+    implementation("com.kizitonwose.calendar:compose:2.6.0")
 }
