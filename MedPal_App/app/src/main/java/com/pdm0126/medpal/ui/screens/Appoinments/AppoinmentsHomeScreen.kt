@@ -308,8 +308,11 @@ fun AppointmentsHomeScreen(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 items(exams) { exam ->
+
+                                    val associatedAppointment = appointments.find { it.id == exam.appointmentId }
                                     ExamCard(
                                         exam = exam,
+                                        associatedAppointment = associatedAppointment,
                                         onToggleComplete = { examId ->
                                             val currentExam =
                                                 exams.find { it.id == examId }

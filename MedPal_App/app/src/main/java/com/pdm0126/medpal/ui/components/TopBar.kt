@@ -124,7 +124,7 @@ fun CustomTopBar(
                         modifier = Modifier
                             .width(110.dp),
                         colors = ButtonDefaults.buttonColors(
-                             containerColor = if (isSaveEnabled) colorResource(R.color.rosy_brown) else colorResource(R.color.rosy_brown).copy(alpha = 0.7f), contentColor = Color.White
+                             containerColor = colorResource(R.color.rosy_brown) , contentColor = Color.White
                         ), enabled = isSaveEnabled
                     ) {
                         Text(

@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import com.pdm0126.medpal.R
 import com.pdm0126.medpal.data.model.Appointment
 import com.pdm0126.medpal.ui.screens.Appoinments.formatDate
+import com.pdm0126.medpal.ui.screens.Appoinments.getCurrentDate
 
 @Composable
 fun AppointmentDropdown(
@@ -34,9 +35,16 @@ fun AppointmentDropdown(
     onAppointmentSelected: (Appointment) -> Unit,
     label: String = "Cita asociada",
     modifier: Modifier = Modifier,
-    isError: Boolean = false
+    isError: Boolean = false,
+    filterPast: Boolean = true
 ) {
     var expanded by remember { mutableStateOf(false) }
+    val today = getCurrentDate()
+    val filterAppointments = if (filterPast) {
+        appointments.filter { it.date >= today }
+    } else {
+        appointments
+    }
 
     Column(modifier = Modifier.fillMaxWidth()) {
         OutlinedTextField(
