@@ -48,7 +48,7 @@ fun AllMyMeds(
                 .fillMaxWidth()
                 .clickable { expanded = !expanded }
                 .padding(vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.Start,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(

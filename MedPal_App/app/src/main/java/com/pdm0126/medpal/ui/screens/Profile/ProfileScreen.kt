@@ -58,6 +58,7 @@ fun ProfileScreen(
     var isGuideVisible by remember{ mutableStateOf(false) }
     var isInfoVisible by remember{ mutableStateOf(false) }
     var isLogoutVisible by remember { mutableStateOf(false) }
+    var isAnyModalOpen = isGuideVisible || isInfoVisible || isLogoutVisible
 
     Box(
         modifier = Modifier
@@ -67,7 +68,7 @@ fun ProfileScreen(
     ) {
 
         IconButton(
-            onClick = onCloseClick,
+            onClick = { if (!isAnyModalOpen) onCloseClick()},
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(top = 8.dp, end = 8.dp)
@@ -75,7 +76,7 @@ fun ProfileScreen(
             Icon(
                 imageVector = Icons.Default.Close,
                 contentDescription = "Cerrar perfil",
-                tint = Color.DarkGray,
+                tint = if (isAnyModalOpen) Color.LightGray else Color.DarkGray,
                 modifier = Modifier.size(28.dp)
             )
         }
@@ -97,7 +98,9 @@ fun ProfileScreen(
             )
 
             Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -131,7 +134,8 @@ fun ProfileScreen(
                 onClick = { isGuideVisible = true },
                 modifier = buttonModifier,
                 colors = buttonColors,
-                shape = buttonShape
+                shape = buttonShape,
+                enabled = !isAnyModalOpen
             ) {
                 Text(text = "Guía de usuario", fontSize = 16.sp, fontWeight = FontWeight.Medium)
             }
@@ -140,7 +144,8 @@ fun ProfileScreen(
                 onClick = onNavigateToSettings,
                 modifier = buttonModifier,
                 colors = buttonColors,
-                shape = buttonShape
+                shape = buttonShape,
+                enabled = !isAnyModalOpen
             ) {
                 Text(text = "Configuración", fontSize = 16.sp, fontWeight = FontWeight.Medium)
             }
@@ -149,7 +154,8 @@ fun ProfileScreen(
                 onClick = onSyncData,
                 modifier = buttonModifier,
                 colors = buttonColors,
-                shape = buttonShape
+                shape = buttonShape,
+                enabled = !isAnyModalOpen
             ) {
                 Text(text = "Sincronizar Datos", fontSize = 16.sp, fontWeight = FontWeight.Medium)
             }
@@ -158,7 +164,8 @@ fun ProfileScreen(
                 onClick = { isInfoVisible = true },
                 modifier = buttonModifier,
                 colors = buttonColors,
-                shape = buttonShape
+                shape = buttonShape,
+                enabled = !isAnyModalOpen
             ) {
                 Text(
                     text = "Información\nImportante",
@@ -172,7 +179,8 @@ fun ProfileScreen(
                 onClick = {isLogoutVisible = true},
                 modifier = buttonModifier,
                 colors = buttonColors,
-                shape = buttonShape
+                shape = buttonShape,
+                enabled = !isAnyModalOpen
             ) {
                 Text(text = "Cerrar Sesión", fontSize = 16.sp, fontWeight = FontWeight.Medium)
             }
