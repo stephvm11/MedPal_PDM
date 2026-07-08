@@ -31,6 +31,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.plus
 import kotlinx.datetime.toKotlinLocalDate
 import kotlinx.datetime.toLocalDateTime
+import java.lang.System.currentTimeMillis
 import kotlin.time.Clock
 
 class MedicationViewModel(
@@ -49,6 +50,10 @@ class MedicationViewModel(
 
     private val _event = MutableSharedFlow<String>()
     val event = _event.asSharedFlow()
+
+    private var lastSyncTime: Long = 0L
+
+    private val SYNC_COOLDOWN_MS = 30000L
 
     init {
         loadData()
@@ -178,6 +183,17 @@ class MedicationViewModel(
     }
 
     fun refreshFromServer(context: Context) {
+
+        val currentTime = currentTimeMillis()
+
+        if (currentTime - lastSyncTime < SYNC_COOLDOWN_MS) {
+            val secondsLeft = ((SYNC_COOLDOWN_MS - (currentTime - lastSyncTime)) / 1000) + 1
+            viewModelScope.launch {
+                _event.emit("Espera $secondsLeft segundos antes de volver a sincronizar.")
+            }
+            return
+        }
+
         viewModelScope.launch {
             _error.value = null
             _refreshing.value = true
@@ -189,13 +205,6 @@ class MedicationViewModel(
                     val med = relation.medication
 
                     relation.reminders.forEach { reminder ->
-
-                        val startDate = try {
-                            val dateString = reminder.lastDose?.take(10) ?: error("No date")
-                            kotlinx.datetime.LocalDate.parse(dateString)
-                        } catch(e: Exception) {
-                            Clock.System.now().toLocalDateTime(kotlinx.datetime.TimeZone.currentSystemDefault()).date
-                        }
 
                         val localTime = try {
                             LocalTime.parse(reminder.time.take(5))
@@ -229,6 +238,7 @@ class MedicationViewModel(
                         }
                     }
                 }
+                lastSyncTime = currentTimeMillis()
                 _event.emit("¡Datos actualizados correctamente!")
             }.onFailure { error ->
                 _event.emit("Error de sincronización!! Si quieres jala la pantalla para intentarlo otra vez")
@@ -243,7 +253,7 @@ class MedicationViewModel(
             val currentTimestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME)
 
             repository.updateLastDose(reminderId, currentTimestamp).onSuccess {
-                _event.emit("Medicamento registrado localmente")
+                _event.emit("Dosis registrada exitosamente")
             }.onFailure { error ->
                 _event.emit("Error local, no se pudo crear tu medicamento")
             }

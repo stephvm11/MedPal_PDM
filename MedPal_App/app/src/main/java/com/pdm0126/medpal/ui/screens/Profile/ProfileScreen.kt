@@ -1,5 +1,6 @@
 package com.pdm0126.medpal.ui.screens.Profile
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,19 +11,23 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import com.pdm0126.medpal.ui.components.ImportantInfoModal
 import com.pdm0126.medpal.ui.components.LogoutDialog
 import com.pdm0126.medpal.ui.components.UserGuideModal
@@ -45,8 +51,6 @@ import com.pdm0126.medpal.ui.components.UserGuideModal
 @Composable
 fun ProfileScreen(
     onCloseClick: () -> Unit,
-    onNavigateToSettings: () -> Unit = {},
-    onSyncData: () -> Unit = {},
     onLogoutClick: () -> Unit,
     viewModel: ProfileViewModel = viewModel(factory = ProfileViewModel.Factory)
 ) {
@@ -54,24 +58,34 @@ fun ProfileScreen(
     val user by viewModel.user.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
+    val isSyncing by viewModel.isSyncing.collectAsState(initial = false)
 
     var isGuideVisible by remember{ mutableStateOf(false) }
     var isInfoVisible by remember{ mutableStateOf(false) }
     var isLogoutVisible by remember { mutableStateOf(false) }
-    var isAnyModalOpen = isGuideVisible || isInfoVisible || isLogoutVisible
+
+    var isAnyModalOpen = isGuideVisible || isInfoVisible || isLogoutVisible || isSyncing
+
+    val context = LocalContext.current
+
+    LaunchedEffect(key1 = true) {
+        viewModel.event.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(16.dp)
     ) {
 
         IconButton(
             onClick = { if (!isAnyModalOpen) onCloseClick()},
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(top = 8.dp, end = 8.dp)
+                .statusBarsPadding()
+                .padding(top = 16.dp, end = 16.dp)
         ) {
             Icon(
                 imageVector = Icons.Default.Close,
@@ -85,7 +99,9 @@ fun ProfileScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.TopCenter)
-                .padding(top = 60.dp),
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .padding(top = 48.dp, start = 16.dp, end = 16.dp, bottom = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
@@ -130,6 +146,13 @@ fun ProfileScreen(
             )
             val buttonShape = RoundedCornerShape(24.dp)
 
+            val syncButtonColors = ButtonDefaults.buttonColors(
+                containerColor = colorResource(R.color.phthalo_green),
+                contentColor = Color.White,
+                disabledContainerColor = Color.White,
+                disabledContentColor = Color.LightGray
+            )
+
             Button(
                 onClick = { isGuideVisible = true },
                 modifier = buttonModifier,
@@ -141,23 +164,31 @@ fun ProfileScreen(
             }
 
             Button(
-                onClick = onNavigateToSettings,
+                onClick = { viewModel.syncAppMedsAndAppointments(user?.id ?: 0L) },
                 modifier = buttonModifier,
-                colors = buttonColors,
+                colors = syncButtonColors,
                 shape = buttonShape,
                 enabled = !isAnyModalOpen
             ) {
-                Text(text = "Configuración", fontSize = 16.sp, fontWeight = FontWeight.Medium)
-            }
-
-            Button(
-                onClick = onSyncData,
-                modifier = buttonModifier,
-                colors = buttonColors,
-                shape = buttonShape,
-                enabled = !isAnyModalOpen
-            ) {
-                Text(text = "Sincronizar Datos", fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                if (isSyncing) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        CircularProgressIndicator(
+                            color = colorResource(R.color.phthalo_green),
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp
+                        )
+                        Text(
+                            text = "Sincronizando...",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = colorResource(R.color.phthalo_green))
+                    }
+                } else {
+                    Text(text = "Sincronizar Datos", fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                }
             }
 
             Button(

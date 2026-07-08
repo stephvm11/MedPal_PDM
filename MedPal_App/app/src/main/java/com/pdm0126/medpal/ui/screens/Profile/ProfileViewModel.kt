@@ -13,9 +13,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import com.pdm0126.medpal.data.repositories.repositorySync.SyncRepository
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import java.lang.System.currentTimeMillis
 
 class ProfileViewModel (
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val syncRepository:  SyncRepository
 ) : ViewModel() {
 
     private val _user = MutableStateFlow<User?>(null)
@@ -27,6 +32,13 @@ class ProfileViewModel (
     private val _error = MutableStateFlow<String?>(null)
     val error = _error.asStateFlow()
 
+    val isSyncing = syncRepository.isSyncing
+
+    private val _event = MutableSharedFlow<String>()
+    val event = _event.asSharedFlow()
+
+    private var lastSyncTime: Long = 0L
+    private val SYNC_COOLDOWN_MS = 120000L
 
     init {
         loadUserData()
@@ -66,13 +78,39 @@ class ProfileViewModel (
         }
     }
 
+    fun syncAppMedsAndAppointments(userId: Long) {
+
+        val currentTime = currentTimeMillis()
+
+        if (currentTime - lastSyncTime < SYNC_COOLDOWN_MS) {
+            val secondsLeft = ((SYNC_COOLDOWN_MS - (currentTime - lastSyncTime)) / 1000) + 1
+            viewModelScope.launch {
+                _event.emit("Espera $secondsLeft segundos antes de volver a sincronizar.")
+            }
+            return
+        }
+
+        viewModelScope.launch {
+            syncRepository.syncAllData(userId)
+                .onSuccess {
+                    lastSyncTime = System.currentTimeMillis()
+                    _event.emit("¡Todos tus datos se han sincronizado con éxito!")
+                }
+                .onFailure { error ->
+                    _event.emit("Error al sincronizar datos, prueba mas tarde")
+                }
+        }
+    }
+
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val app = this[APPLICATION_KEY] as MedPalApplication
                 val authRepo = app.appProvider.provideAuthRepository()
+                val syncRepo = app.appProvider.provideSyncRepository()
 
-                ProfileViewModel(authRepository = authRepo)
+                ProfileViewModel(authRepository = authRepo, syncRepository = syncRepo)
+
             }
         }
     }

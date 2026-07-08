@@ -19,6 +19,8 @@ import com.pdm0126.medpal.data.repositories.repositoryMedication.MedicationRepos
 import com.pdm0126.medpal.data.repositories.repositoryMedication.MedicationRepositoryImpl
 import com.pdm0126.medpal.data.repositories.repositoryOfflineFirst.Appointment.AppointmentRepository
 import com.pdm0126.medpal.data.repositories.repositoryOfflineFirst.Appointment.AppointmentRepositoryImpl
+import com.pdm0126.medpal.data.repositories.repositorySync.SyncRepository
+import com.pdm0126.medpal.data.repositories.repositorySync.SyncRepositoryImpl
 import com.pdm0126.medpal.data.session.SessionManager
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.user.UserSession
@@ -85,6 +87,12 @@ class AppProvider(context: Context){
         examDao = database.examDao()
     )
 
+    private val syncRepository: SyncRepository = SyncRepositoryImpl(
+        appointmentRepository = appointmentRepository,
+        examRepository = examRepository,
+        medicationRepository = medicationRepository,
+    )
+
     fun provideAuthRepository(): AuthRepository {
         return authRepository
     }
@@ -105,6 +113,10 @@ class AppProvider(context: Context){
     }
     fun provideAddExamRepository(): AddExamRepository {
         return addExamRepository
+    }
+
+    fun provideSyncRepository(): SyncRepository {
+        return syncRepository
     }
 
 }

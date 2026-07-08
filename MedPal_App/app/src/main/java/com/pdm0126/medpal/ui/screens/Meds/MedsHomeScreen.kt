@@ -67,9 +67,7 @@ fun MedsHomeScreen(
 
     LaunchedEffect(key1 = true) {
         viewModel.event.collect { message ->
-            if (message.contains("Error")) {
                 Toast.makeText(context, message, Toast.LENGTH_LONG).show()
-            }
         }
     }
     LaunchedEffect(Unit) {
