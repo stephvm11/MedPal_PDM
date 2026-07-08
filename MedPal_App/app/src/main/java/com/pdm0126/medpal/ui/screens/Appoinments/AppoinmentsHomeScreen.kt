@@ -70,7 +70,8 @@ fun AppointmentsHomeScreen(
     currentRoute: String,
     onNavigateToItemClick: (String) -> Unit,
     onAddAppointmentClick: () -> Unit = {},
-    onAddExamClick: () -> Unit = {}
+    onAddExamClick: () -> Unit = {},
+    onNavigateToCalendar: () -> Unit
 ) {
 
     val context = LocalContext.current
@@ -126,7 +127,7 @@ fun AppointmentsHomeScreen(
         true,
         currentRoute,
         onNavigateToItemClick,
-        {},
+        onNavigateToCalendar,
         onNavigateToProfile,
     ) { paddingValues ->
 
