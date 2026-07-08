@@ -20,6 +20,7 @@ import com.pdm0126.medpal.ui.screens.Appoinments.AppointmentsHomeScreen
 import com.pdm0126.medpal.ui.screens.AddMed.AddMedicationScreen
 import com.pdm0126.medpal.ui.screens.Meds.MedsHomeScreen
 import com.pdm0126.medpal.ui.components.MedPalAlert
+import com.pdm0126.medpal.ui.screens.AddExam.AddExamScreen
 import com.pdm0126.medpal.ui.screens.Profile.ProfileScreen
 
 
@@ -42,20 +43,21 @@ fun MedPal_App(
             entryProvider = entryProvider {
                 entry<Routes.Appoinments> {
                     AppointmentsHomeScreen(
-                        onNavigateToProfile = {backStack.add(Routes.Profile)},
+                        onNavigateToProfile = { backStack.add(Routes.Profile) },
                         currentRoute = "appointments",
                         onNavigateToItemClick = { route ->
                             if (route == "medication") {
                                 backStack.add(Routes.Meds)
                             }
                         },
-                        onAddAppointmentClick = { backStack.add(Routes.AddAppointmentForm) }
+                        onAddAppointmentClick = { backStack.add(Routes.AddAppointmentForm) },
+                        onAddExamClick = { backStack.add(Routes.AddExamForm) }
                     )
                 }
                 entry<Routes.Meds> {
                     MedsHomeScreen(
                         onNavigateToAddMedication = { backStack.add(Routes.MedsAddForm) },
-                        onNavigateToProfile = {backStack.add(Routes.Profile)},
+                        onNavigateToProfile = { backStack.add(Routes.Profile) },
                         currentRoute = "medication",
                         onNavigateToItemClick = { route ->
                             if (route == "appointments") {
@@ -81,10 +83,21 @@ fun MedPal_App(
                         }
                     )
                 }
+                entry<Routes.AddExamForm> {
+                    AddExamScreen(
+                        onSave = {
+                            backStack.removeLastOrNull()
+                        },
+                        onClose = {
+                            backStack.removeLastOrNull()
+                        }
+                    )
+                }
 
                 entry<Routes.Profile> {
                     ProfileScreen(
-                        onCloseClick = {backStack.removeLastOrNull()},
+                        onCloseClick = { backStack.removeLastOrNull() },
+                        onNavigateToGuide = {},
                         onNavigateToSettings = {},
                         onSyncData = {},
                         onLogoutClick = onLogout
@@ -102,8 +115,10 @@ fun MedPal_App(
                         AlertType.MEDICAMENTO -> {
                             AlertGlobalEvent.confirmMedicationTake(alert.id)
                         }
+
                         AlertType.CITA -> {
                         }
+
                         AlertType.EXAMEN -> {
                         }
                     }

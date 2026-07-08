@@ -46,6 +46,7 @@ import com.pdm0126.medpal.R.color
 import com.pdm0126.medpal.ui.components.AddCard
 import com.pdm0126.medpal.ui.components.AppoinmentCard
 import com.pdm0126.medpal.ui.components.ClosestAppoinment
+import com.pdm0126.medpal.ui.components.ExamCard
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
@@ -59,7 +60,9 @@ import kotlin.math.abs
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AppointmentsHomeScreen(
-    viewModel: AppointmentViewModel = viewModel(factory = AppointmentViewModel.Factory),
+
+    appointmentViewModel: AppointmentViewModel = viewModel(factory = AppointmentViewModel.Factory),
+    examViewModel: ExamViewModel = viewModel(factory = ExamViewModel.Factory),
     onNavigateToProfile: () -> Unit,
     currentRoute: String,
     onNavigateToItemClick: (String) -> Unit,
@@ -68,17 +71,27 @@ fun AppointmentsHomeScreen(
 ) {
 
     val context = LocalContext.current
-    val appointments by viewModel.appointments.collectAsStateWithLifecycle()
-    val isLoading by viewModel.isLoading.collectAsState()
-    val error by viewModel.error.collectAsState()
-    val refresh by viewModel.refreshing.collectAsState()
+    val appointments by appointmentViewModel.appointments.collectAsStateWithLifecycle()
+    val exams by examViewModel.exams.collectAsStateWithLifecycle()
+    val isLoadingAppointments by appointmentViewModel.isLoading.collectAsState()
+    val isLoadingExams by examViewModel.isLoading.collectAsState()
+    val errorAppointments by appointmentViewModel.error.collectAsState()
+    val errorExams by examViewModel.error.collectAsState()
+    val refreshExams by examViewModel.refreshing.collectAsState()
+    val refreshAppointments by appointmentViewModel.refreshing.collectAsState()
 
     val nextAppointment =
         appointments.filter { it.date >= getCurrentDate() }.minByOrNull { it.date }
 
-    LaunchedEffect(error) {
-        error?.let {
-            Toast.makeText(context, "$it", Toast.LENGTH_SHORT).show()
+    LaunchedEffect(errorAppointments) {
+        errorAppointments?.let {
+            Toast.makeText(context, "Error en citas: $it", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    LaunchedEffect(errorExams) {
+        errorExams?.let {
+            Toast.makeText(context, "Error en exámenes: $it", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -92,7 +105,7 @@ fun AppointmentsHomeScreen(
         onNavigateToProfile,
     ) { paddingValues ->
 
-        if (isLoading && appointments.isEmpty()) {
+        if (isLoadingAppointments && appointments.isEmpty() || (isLoadingExams && exams.isEmpty())) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -108,10 +121,12 @@ fun AppointmentsHomeScreen(
         }
 
         PullToRefreshBox(
-            isRefreshing = refresh,
+            isRefreshing = refreshAppointments || refreshExams,
             onRefresh = {
-                viewModel.clearError()
-                viewModel.refreshAppointments()
+                appointmentViewModel.clearError()
+                appointmentViewModel.refreshAppointments()
+                examViewModel.clearError()
+                examViewModel.refreshExams()
             },
             modifier = Modifier
                 .fillMaxSize()
@@ -123,14 +138,14 @@ fun AppointmentsHomeScreen(
                     .verticalScroll(rememberScrollState())
             ) {
 
-                if (error != null && appointments.isEmpty()) {
+                if (errorAppointments != null && appointments.isEmpty()) {
                     Column(
                         modifier = Modifier
                             .padding(paddingValues)
                             .padding(16.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text(text = "Error al cargar: ${error}")
+                        Text(text = "Error al cargar citas: ${errorAppointments}")
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
@@ -140,7 +155,6 @@ fun AppointmentsHomeScreen(
                         textAlign = TextAlign.Center
                     )
                 } else {
-
                     ClosestAppoinment(nextAppointment)
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
@@ -204,9 +218,13 @@ fun AppointmentsHomeScreen(
                                                 appointments.find { it.id == appoinmentId }
                                             if (currentAppointment != null) {
                                                 if (currentAppointment.status) {
-                                                    viewModel.uncompleteAppointment(appoinmentId)
+                                                    appointmentViewModel.completeAppointment(
+                                                        appoinmentId
+                                                    )
                                                 } else {
-                                                    viewModel.completeAppointment(appoinmentId)
+                                                    appointmentViewModel.completeAppointment(
+                                                        appoinmentId
+                                                    )
                                                 }
                                             }
                                         }
@@ -230,46 +248,84 @@ fun AppointmentsHomeScreen(
                     colorResource(color.midnight_green)
                 )
                 Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = "Mis exámenes médicos próximos",
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 16.dp),
-                    textAlign = TextAlign.Left
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    AddCard(onAddClick = onAddExamClick)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Card(
+
+                if (errorExams != null && exams.isEmpty()) {
+                    Column(
                         modifier = Modifier
-                            .height(200.dp)
-                            .fillMaxWidth()
-                            .padding(end = 16.dp),
-                        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.background),
-                        border = BorderStroke(3.dp, colorResource(color.beige))
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                text = "No tienes examenes programados",
-                                style = MaterialTheme.typography.bodySmall,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                            Text(
-                                text = "Toca + para agregar.",
-                                style = MaterialTheme.typography.bodySmall,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.fillMaxWidth()
-                            )
+                        Text(text = "Error al cargar exámenes: ${errorExams}")
+                    }
+                } else {
+                    Text(
+                        text = "Mis exámenes médicos próximos",
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 16.dp),
+                        textAlign = TextAlign.Left
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        AddCard(onAddClick = onAddExamClick)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        if (exams.isEmpty()) {
+                            Card(
+                                modifier = Modifier
+                                    .height(200.dp)
+                                    .fillMaxWidth()
+                                    .padding(end = 16.dp),
+                                colors = CardDefaults.cardColors(MaterialTheme.colorScheme.background),
+                                border = BorderStroke(3.dp, colorResource(color.beige))
+                            ) {
+                                Column(
+                                    modifier = Modifier.fillMaxSize(),
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Text(
+                                        text = "No tienes examenes programados",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                    Text(
+                                        text = "Toca + para agregar.",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+                            }
+                        } else {
+                            LazyRow(
+                                modifier = Modifier
+                                    .height(200.dp)
+                                    .fillMaxWidth()
+                                    .padding(end = 16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                items(exams) { exam ->
+                                    ExamCard(
+                                        exam = exam,
+                                        onToggleComplete = { examId ->
+                                            val currentExam =
+                                                exams.find { it.id == examId }
+                                            if (currentExam != null) {
+                                                if (currentExam.status) {
+                                                    examViewModel.uncompleteExam(examId)
+                                                } else {
+                                                    examViewModel.completeExam(examId)
+                                                }
+                                            }
+                                        }
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -277,6 +333,7 @@ fun AppointmentsHomeScreen(
         }
     }
 }
+
 
 fun getCurrentDate(): kotlinx.datetime.LocalDate {
     return Clock.System.todayIn(TimeZone.currentSystemDefault())

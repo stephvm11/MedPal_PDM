@@ -1,5 +1,6 @@
 package com.pdm0126.medpal.ui.screens.AddExam
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -16,10 +17,12 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -32,6 +35,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pdm0126.medpal.R
 import com.pdm0126.medpal.data.model.Appointment
 import com.pdm0126.medpal.data.model.FrequencyReminder
@@ -48,11 +53,15 @@ import kotlin.time.Clock
 
 @Composable
 fun AddExamScreen(
+    viewModel: AddExamViewModel = viewModel(factory = AddExamViewModel.Factory),
     onSave: () -> Unit,
     onClose: () -> Unit
 ) {
     val context = LocalContext.current
     val now = remember { Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()) }
+
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val appointments by viewModel.appointments.collectAsStateWithLifecycle()
 
     var title by remember { mutableStateOf("") }
     var selectedAppointment by remember { mutableStateOf<Appointment?>(null) }
@@ -65,12 +74,37 @@ fun AddExamScreen(
 
     val isFormValid = title.isNotBlank() && selectedAppointment != null && place.isNotBlank()
 
+    LaunchedEffect(Unit) {
+        viewModel.event.collect { message ->
+            if (message.isNotBlank()) {
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.loadAppointments()
+    }
+
     AppScaffold(
         "Nuevo examen",
         topBarScreenCase = TopBarCases.FORM,
         false,
         isSaveEnabled = isFormValid,
-        onSaveClick = {},
+        onSaveClick = {
+            if (isFormValid && selectedAppointment != null) {
+                viewModel.createExam(
+                    title = title,
+                    place = place,
+                    apointmentId = selectedAppointment!!.id,
+                    hasReminder = isReminderEnabled,
+                    reminderTime = if (isReminderEnabled) reminderTime else null,
+                    frequency = if (isReminderEnabled) selectedFrequency else null,
+                    startDay = if (isReminderEnabled) startDay else null,
+                    onSuccess = onSave
+                )
+            }
+        },
         onCloseClick = onClose
     ) { paddingValues ->
         Column(
@@ -82,78 +116,104 @@ fun AddExamScreen(
                     rememberScrollState(),
                 ), verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            FormTextField(
-                value = title,
-                onValueChange = { title = it },
-                label = "Título del examen médico",
-                placeholder = "Ej. Examen de orina"
-            )
-            FormTextField(
-                value = place,
-                onValueChange = { place = it },
-                label = "Lugar del examen médico",
-                placeholder = "Ej. Laboratorio Beyker"
-            )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Icon(
-                    imageVector = if (isReminderEnabled) Icons.Default.Notifications else Icons.Default.NotificationsOff,
-                    contentDescription = null,
-                    tint = if (isReminderEnabled) colorResource(R.color.moss_green) else colorResource(
-                        R.color.rosy_brown
-                    ), modifier = Modifier.size(28.dp)
-                )
-                Button(
-                    onClick = { isReminderEnabled = !isReminderEnabled },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isReminderEnabled) colorResource(R.color.moss_green) else colorResource(
-                            R.color.rosy_brown
-                        ),
-                        contentColor = Color.White
-                    ), shape = RoundedCornerShape(50.dp),
-                    border = if (isReminderEnabled) ButtonDefaults.outlinedButtonBorder(enabled = true) else null,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = if (isReminderEnabled) "Recordatorio" else "Agregar recordatorio",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            }
-            AnimatedVisibility(visible = isReminderEnabled) {
+            if (isLoading && appointments.isEmpty()) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
-                    FormTimePicker(
-                        value = reminderTime,
-                        onValueChange = { reminderTime = it },
-                        label = "Hora de recordatorio"
+                    CircularProgressIndicator(
+                        color = colorResource(R.color.midnight_green),
+                        modifier = Modifier.size(48.dp)
                     )
                     Text(
-                        text = "¿Desde cuándo te empezamos a recordar?",
+                        text = "Cargando citas disponibles...",
                         style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold,
+                        color = colorResource(R.color.rosy_brown)
                     )
-                    DaysSelector(
-                        selectedDays = startDay,
-                        onDaysSelected = { startDay = it }
+                }
+            } else {
+                FormTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = "Título del examen médico",
+                    placeholder = "Ej. Examen de orina"
+                )
+                FormTextField(
+                    value = place,
+                    onValueChange = { place = it },
+                    label = "Lugar del examen médico",
+                    placeholder = "Ej. Laboratorio Beyker"
+                )
+                AppointmentDropdown(
+                    appointments = appointments,
+                    selectedAppointment = selectedAppointment,
+                    onAppointmentSelected = { selectedAppointment = it },
+                    label = "Escoge la cita asociada al examen",
+                    isError = selectedAppointment == null && title.isNotBlank()
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Icon(
+                        imageVector = if (isReminderEnabled) Icons.Default.Notifications else Icons.Default.NotificationsOff,
+                        contentDescription = null,
+                        tint = if (isReminderEnabled) colorResource(R.color.moss_green) else colorResource(
+                            R.color.rosy_brown
+                        ), modifier = Modifier.size(28.dp)
                     )
-                    FrequencySelector(
-                        selectedFrequency = selectedFrequency,
-                        onFrequencySelected = { selectedFrequency = it },
-                        frequencies = listOf(
-                            FrequencyReminder.DIARIO,
-                            FrequencyReminder.CADA_3_DIAS,
-                            FrequencyReminder.SEMANAL
-                        ),
-                        title = "Frecuencia"
-                    )
+                    Button(
+                        onClick = { isReminderEnabled = !isReminderEnabled },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (isReminderEnabled) colorResource(R.color.moss_green) else colorResource(
+                                R.color.rosy_brown
+                            ),
+                            contentColor = Color.White
+                        ), shape = RoundedCornerShape(50.dp),
+                        border = if (isReminderEnabled) ButtonDefaults.outlinedButtonBorder(enabled = true) else null,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = if (isReminderEnabled) "Recordatorio" else "Agregar recordatorio",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+
+                }
+                AnimatedVisibility(visible = isReminderEnabled) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        FormTimePicker(
+                            value = reminderTime,
+                            onValueChange = { reminderTime = it },
+                            label = "Hora de recordatorio"
+                        )
+                        Text(
+                            text = "¿Desde cuándo te empezamos a recordar?",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        DaysSelector(
+                            selectedDays = startDay,
+                            onDaysSelected = { startDay = it }
+                        )
+                        FrequencySelector(
+                            selectedFrequency = selectedFrequency,
+                            onFrequencySelected = { selectedFrequency = it },
+                            frequencies = listOf(
+                                FrequencyReminder.DIARIO,
+                                FrequencyReminder.CADA_3_DIAS,
+                                FrequencyReminder.SEMANAL
+                            ),
+                            title = "Frecuencia"
+                        )
+                    }
                 }
             }
         }
