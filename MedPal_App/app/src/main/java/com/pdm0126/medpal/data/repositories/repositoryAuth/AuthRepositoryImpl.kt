@@ -15,10 +15,18 @@ import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import com.pdm0126.medpal.data.local.database.entities.UserEntity
 import io.github.jan.supabase.auth.status.SessionStatus
+import io.ktor.client.request.header
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.contentType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
 
 class AuthRepositoryImpl(
     private val sessionManager: SessionManager,
@@ -77,30 +85,48 @@ class AuthRepositoryImpl(
                 this.password = password
             }
 
-            val userEmail = authResponse?.email
-
-            if (userEmail == null) {
+            if (authResponse == null || authResponse.email == null) {
                 throw Exception("Error en el registro")
             }
 
+            val supabaseUid = authResponse.id
+
             val session = SupabaseClient.client.auth.currentSessionOrNull()
+            val tokenParaInsertar = session?.accessToken
 
-            val userId = session?.user?.id ?: authResponse.userMetadata?.get("id")?.toString()
+            val userProfileBody = buildJsonObject {
+                put("auth_user_id", JsonPrimitive(supabaseUid))
+                put("nombre", JsonPrimitive(firstName))
+                put("apellido", JsonPrimitive(lastName))
+            }
 
-            if (userId == null) {
-                throw Exception("No se pudo obtener el id del usuario")
+            KtorClient.client.post("rest/v1/usuario") {
+                setBody(userProfileBody)
+                contentType(ContentType.Application.Json)
+                tokenParaInsertar?.let {
+                    header(HttpHeaders.Authorization, "Bearer $it")
+                }
             }
 
             if (session != null) {
-                sessionManager.saveSession(
-                    accessToken = session.accessToken,
-                    refreshToken = session.refreshToken,
-                    userId = userId
-                )
-                KtorClient.accessToken = session.accessToken
+
+                val userInfo: List<UserDto> = KtorClient.client.get("rest/v1/usuario") {
+                    parameter("auth_user_id", "eq.$supabaseUid")
+                }.body()
+
+                val publicUser = userInfo.firstOrNull()
+
+                if (publicUser != null) {
+                    userDao.upsertUser(publicUser.toEntity())
+
+                    sessionManager.saveSession(
+                        accessToken = session.accessToken,
+                        refreshToken = session.refreshToken,
+                        userId = publicUser.id.toString()
+                    )
+                    KtorClient.accessToken = session.accessToken
+                }
             }
-
-
             Result.success(Unit)
 
         } catch (e: Exception) {

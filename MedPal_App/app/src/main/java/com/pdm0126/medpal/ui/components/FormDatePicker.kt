@@ -43,90 +43,53 @@ fun FormDatePicker(
         .toInstant()
         .toEpochMilli()
 
-    val textFieldColors = OutlinedTextFieldDefaults.colors(
-        focusedTextColor = colorResource(R.color.beige),
-        unfocusedTextColor = colorResource(R.color.beige),
-        focusedLabelColor = colorResource(R.color.beige),
-        unfocusedLabelColor = colorResource(R.color.beige),
-        focusedBorderColor = colorResource(R.color.beige),
-        unfocusedBorderColor = colorResource(R.color.beige)
-    )
-
-    val backgroundColor = colorResource(id = R.color.midnight_green)
-    val letterColors = colorResource(id = R.color.beige)
-    val backgroundSelectedColor = colorResource(id = R.color.phthalo_green)
-    val letterSelectedColor = colorResource(id =R.color.beige)
-
     OutlinedTextField(
         value = "${value.day}/${value.month}/${value.year}",
         onValueChange = {},
         label = { Text(text = label) },
         readOnly = true,
         enabled = true,
-         modifier = Modifier.width(200.dp)
-             .onFocusChanged { focusState ->
-             if (focusState.isFocused) {
-                 showDialog = true
-                 focusManager.clearFocus()
-             }
-         },
-        colors = textFieldColors
+        modifier = Modifier.width(200.dp)
+            .onFocusChanged { focusState ->
+                if (focusState.isFocused) {
+                    showDialog = true
+                    focusManager.clearFocus()
+                }
+            },
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = colorResource(R.color.rosy_brown),
+            unfocusedBorderColor = colorResource(R.color.midnight_green).copy(alpha = 0.3f)
+        )
     )
     if (showDialog) {
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = initialDate
         )
-        MaterialTheme(
-            colorScheme = MaterialTheme.colorScheme.copy(
-                surface = backgroundColor,
-                onSurface = letterColors,
-                onSurfaceVariant = letterColors,
-                primary = letterColors,
-                outline = letterColors
-            )
-        ) {
-            DatePickerDialog(
-                onDismissRequest = { showDialog = false },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            datePickerState.selectedDateMillis?.let { millis ->
-                                val date = Instant.ofEpochMilli(millis)
-                                    .atZone(ZoneId.of("UTC"))
-                                    .toLocalDate()
-                                    .toKotlinLocalDate()
-                                onValueChange(date)
-                            }
-                            showDialog = false
-                        }
-                    ) {
-                        Text("Aceptar")
+
+        DatePickerDialog(
+            onDismissRequest = {showDialog = false},
+            confirmButton =  {
+                TextButton(
+                    onClick = {datePickerState.selectedDateMillis?.let { millis ->
+                        val date = Instant.ofEpochMilli(millis)
+                            .atZone(ZoneId.of("UTC"))
+                            .toLocalDate()
+                            .toKotlinLocalDate()
+                        onValueChange(date)}
+                        showDialog = false
                     }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showDialog = false }) {
-                        Text("Cancelar")
-                    }
+                ) {
+                    Text("Aceptar")
                 }
-            ) {
-                DatePicker(
-                    state = datePickerState,
-                    colors = DatePickerDefaults.colors(
-                        containerColor = backgroundColor,
-                        titleContentColor = letterColors,
-                        headlineContentColor = letterColors,
-                        weekdayContentColor = letterColors,
-                        subheadContentColor = letterColors,
-                        navigationContentColor = letterColors,
-                        yearContentColor = letterColors,
-                        dayContentColor = letterColors,
-                        selectedDayContainerColor = backgroundSelectedColor,
-                        selectedDayContentColor = letterSelectedColor,
-                        todayContentColor = letterColors,
-                        todayDateBorderColor = backgroundSelectedColor
-                    )
-                )
+            },
+            dismissButton = {
+                TextButton(onClick = {showDialog = false}) {
+                    Text("Cancelar")
+                }
             }
+        ){
+            DatePicker(datePickerState)
         }
     }
+
 }
