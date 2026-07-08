@@ -41,6 +41,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pdm0126.medpal.R
 import com.pdm0126.medpal.data.model.FrequencyReminder
+import com.pdm0126.medpal.data.notifications.ReminderAlarmManager
 import com.pdm0126.medpal.ui.components.AppScaffold
 import com.pdm0126.medpal.ui.components.DaysChip
 import com.pdm0126.medpal.ui.components.DaysSelector
@@ -49,8 +50,10 @@ import com.pdm0126.medpal.ui.components.FormTextField
 import com.pdm0126.medpal.ui.components.FormTimePicker
 import com.pdm0126.medpal.ui.components.FrequencySelector
 import com.pdm0126.medpal.ui.components.TopBarCases
+import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.minus
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.internal.missingFieldExceptionWithNewMessage
 import kotlin.time.Clock
@@ -78,6 +81,32 @@ fun AddAppointmentScreen(
     var startDay by remember { mutableIntStateOf(7) }
 
     val isFormValid = title.isNotBlank() && specialist.isNotBlank() && place.isNotBlank()
+
+    LaunchedEffect(Unit) {
+        viewModel.event.collect { message ->
+            if (message.isNotBlank()) {
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+
+                if (message.contains("exitosamente") && isReminderEnabled) {
+
+                    val alarmDate = date.minus(startDay, DateTimeUnit.DAY)
+                    val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+
+                    if (alarmDate >= today) {
+                        ReminderAlarmManager.scheduleAppointmentAlarm(
+                            context = context,
+                            appointmentId = 0L,
+                            title = "Recordatorio de Cita: $title",
+                            description = "Tu cita con $specialist en $place es el $date",
+                            hour = reminderTime.hour,
+                            minute = reminderTime.minute,
+                            startDate = alarmDate
+                        )
+                    }
+                }
+            }
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.event.collect { message ->

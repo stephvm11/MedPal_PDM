@@ -47,7 +47,9 @@ import com.pdm0126.medpal.ui.components.FormTextField
 import com.pdm0126.medpal.ui.components.FormTimePicker
 import com.pdm0126.medpal.ui.components.FrequencySelector
 import com.pdm0126.medpal.ui.components.TopBarCases
+import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.minus
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 
@@ -73,6 +75,32 @@ fun AddExamScreen(
     var startDay by remember { mutableIntStateOf(7) }
 
     val isFormValid = title.isNotBlank() && selectedAppointment != null && place.isNotBlank()
+
+    LaunchedEffect(Unit) {
+        viewModel.event.collect { message ->
+            if (message.isNotBlank()) {
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+
+                if (message.contains("exitosamente") && isReminderEnabled && selectedAppointment != null) {
+
+                    val alarmDate = selectedAppointment!!.date.minus(startDay, DateTimeUnit.DAY)
+                    val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+
+                    if (alarmDate >= today) {
+                        com.pdm0126.medpal.data.notifications.ReminderAlarmManager.scheduleExamAlarm(
+                            context = context,
+                            examId = 0L,
+                            title = "Recordatorio de Examen: $title",
+                            description = "Tu examen en $place está asociado a tu cita del ${selectedAppointment!!.date}",
+                            hour = reminderTime.hour,
+                            minute = reminderTime.minute,
+                            startDate = alarmDate
+                        )
+                    }
+                }
+            }
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.event.collect { message ->

@@ -18,6 +18,10 @@ import kotlinx.datetime.LocalTime
 interface AppointmentDao {
 
     @Transaction
+    @Query("SELECT * FROM cita WHERE id_usuario = :userId")
+    fun getAppointmentsWithRemindersNotifications(userId: Long): Flow<List<AppointmentWithReminders>>
+
+    @Transaction
     @Query("SELECT * FROM cita WHERE id_usuario = :userId ORDER BY fecha ASC, hora ASC")
     fun getAppointmentsWithRemindersByUser(userId: Long): Flow<List<AppointmentWithReminders>>
 

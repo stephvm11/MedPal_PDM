@@ -11,6 +11,16 @@ import kotlinx.datetime.LocalDate
 
 @Dao
 interface ExamDao {
+
+    @Transaction
+    @Query("""
+        SELECT examen.* FROM examen 
+        INNER JOIN cita ON examen.id_cita = cita.id 
+        WHERE cita.id_usuario = :userId
+    """)
+    fun getExamsWithRemindersNotifications(userId: Long): Flow<List<ExamWithReminders>>
+
+
     @Transaction
     @Query(
         """

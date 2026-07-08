@@ -59,7 +59,8 @@ class AppProvider(context: Context){
     )
     private val appointmentRepository: AppointmentRepository =
         AppointmentRepositoryImpl(
-            appointmentDao = database.appointmentDao()
+            appointmentDao = database.appointmentDao(),
+            reminderDao = database.appointmentReminderDao()
         )
     private val addAppointmentRepository: AddAppointmentRepository = AddAppointmentRepositoryImpl(
         appointmentDao = database.appointmentDao(),
@@ -84,7 +85,8 @@ class AppProvider(context: Context){
     )
 
     private val examRepository: ExamRepository = ExamRepositoryImpl(
-        examDao = database.examDao()
+        examDao = database.examDao(),
+        reminderDao = database.appointmentReminderDao()
     )
 
     private val syncRepository: SyncRepository = SyncRepositoryImpl(

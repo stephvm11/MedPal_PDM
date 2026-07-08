@@ -17,8 +17,17 @@ import kotlinx.datetime.LocalTime
             childColumns = ["id_cita"],
             onDelete = ForeignKey.CASCADE
         ),
+        ForeignKey(
+            entity = ExamEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["id_examen"],
+            onDelete = ForeignKey.CASCADE
+        )
     ],
-    indices = [Index("id_cita")]
+    indices = [
+        Index("id_cita"),
+        Index("id_examen")
+    ]
 )
 
 data class AppointmentReminderEntity(

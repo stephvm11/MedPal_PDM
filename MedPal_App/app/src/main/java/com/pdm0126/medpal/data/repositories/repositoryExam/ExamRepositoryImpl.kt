@@ -1,7 +1,10 @@
 package com.pdm0126.medpal.data.repositories.repositoryExam
 
+import com.pdm0126.medpal.data.local.database.dao.AppointmentReminderDao
 import com.pdm0126.medpal.data.local.database.dao.ExamDao
 import com.pdm0126.medpal.data.local.database.entities.ExamWithReminders
+import com.pdm0126.medpal.data.remote.api.AppointmentReminder.AppointmentReminderDto
+import com.pdm0126.medpal.data.remote.api.AppointmentReminder.toEntity
 import com.pdm0126.medpal.data.remote.api.Exam.ExamDto
 import com.pdm0126.medpal.data.remote.api.Exam.toEntity
 import com.pdm0126.medpal.data.remote.api.KtorClient
@@ -17,8 +20,12 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 
 class ExamRepositoryImpl(
-    private val examDao: ExamDao
+    private val examDao: ExamDao,
+    private val reminderDao: AppointmentReminderDao
 ) : ExamRepository {
+    override fun getExamsWithRemindersNotifications(userId: Long): Flow<List<ExamWithReminders>> {
+        return examDao.getExamsWithRemindersNotifications(userId)
+    }
 
     override fun getExamsWithReminders(userId: Long): Flow<List<ExamWithReminders>> {
         return examDao.getExamsWithRemindersByUser(userId)
@@ -38,7 +45,14 @@ class ExamRepositoryImpl(
                     .body()
             exams.forEach { println("   - ${it.title} (${it.place})") }
 
+            val reminders: List<AppointmentReminderDto> = KtorClient.client.get("rest/v1/recordatorio_cita"){
+                parameter("select", "*,examen!inner(*,cita!inner(id_usuario))")
+                parameter("examen.cita.id_usuario", "eq.$userId")
+            }.body()
+
             examDao.upsertExams(exams.map { it.toEntity() })
+            reminderDao.upsertReminders(reminders.map { it.toEntity()})
+
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

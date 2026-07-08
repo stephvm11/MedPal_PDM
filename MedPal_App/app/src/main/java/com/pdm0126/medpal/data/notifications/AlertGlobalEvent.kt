@@ -13,6 +13,12 @@ object AlertGlobalEvent {
     private val _confirmations = Channel<Long>(Channel.BUFFERED)
     val confirmations = _confirmations.receiveAsFlow()
 
+    private val _appointmentConfirmations = Channel<Long>(Channel.BUFFERED)
+    val appointmentConfirmations = _appointmentConfirmations.receiveAsFlow()
+
+    private val _examConfirmations = Channel<Long>(Channel.BUFFERED)
+    val examConfirmations = _examConfirmations.receiveAsFlow()
+
     fun triggerAlert(alert: AlertData) {
         _events.tryEmit(alert)
     }
@@ -23,5 +29,13 @@ object AlertGlobalEvent {
 
     fun confirmMedicationTake(reminderId: Long) {
         _confirmations.trySend(reminderId)
+    }
+
+    fun confirmAppointment(reminderId: Long) {
+        _appointmentConfirmations.trySend(reminderId)
+    }
+
+    fun confirmExam(reminderId: Long) {
+        _examConfirmations.trySend(reminderId)
     }
 }

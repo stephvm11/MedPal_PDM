@@ -114,9 +114,11 @@ fun MedPal_App(
                         }
 
                         AlertType.CITA -> {
+                            AlertGlobalEvent.confirmAppointment(alert.id)
                         }
 
                         AlertType.EXAMEN -> {
+                            AlertGlobalEvent.confirmExam(alert.id)
                         }
                     }
                     activeAlert = null

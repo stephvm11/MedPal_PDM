@@ -7,6 +7,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 
 interface AppointmentRepository {
+    fun getAppointmentsWithRemindersNotifications(userId: Long): Flow<List<AppointmentWithReminders>>
     fun getAppointmentsWithReminders(userId: Long): Flow<List<AppointmentWithReminders>>
 
     fun getPendingAppointmentsWithReminders(userId: Long): Flow<List<AppointmentWithReminders>>

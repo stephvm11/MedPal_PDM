@@ -2,6 +2,8 @@ package com.pdm0126.medpal.ui.screens.Appoinments
 
 import android.os.Build
 import android.widget.Toast
+import android.widget.Toast.LENGTH_LONG
+import android.widget.Toast.makeText
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
@@ -43,6 +45,7 @@ import com.pdm0126.medpal.R
 import com.pdm0126.medpal.ui.components.AppScaffold
 import com.pdm0126.medpal.ui.components.TopBarCases
 import com.pdm0126.medpal.R.color
+import com.pdm0126.medpal.data.notifications.AlertGlobalEvent
 import com.pdm0126.medpal.ui.components.AddCard
 import com.pdm0126.medpal.ui.components.AppoinmentCard
 import com.pdm0126.medpal.ui.components.ClosestAppoinment
@@ -81,17 +84,41 @@ fun AppointmentsHomeScreen(
     val refreshExams by examViewModel.refreshing.collectAsState()
     val refreshAppointments by appointmentViewModel.refreshing.collectAsState()
 
-    LaunchedEffect(errorAppointments) {
-        errorAppointments?.let {
-            Toast.makeText(context, "Error en citas: $it", Toast.LENGTH_SHORT).show()
+    LaunchedEffect(Unit) {
+        appointmentViewModel.refreshAppointments(context)
+        examViewModel.refreshExams(context)
+    }
+
+    LaunchedEffect(key1 = true) {
+        appointmentViewModel.event.collect { message ->
+            makeText(context, message, LENGTH_LONG).show()
         }
     }
 
-    LaunchedEffect(errorExams) {
-        errorExams?.let {
-            Toast.makeText(context, "Error en exámenes: $it", Toast.LENGTH_SHORT).show()
+    LaunchedEffect(key1 = true) {
+        appointmentViewModel.event.collect { message ->
+            makeText(context, message, LENGTH_LONG).show()
         }
     }
+
+    LaunchedEffect(key1 = true) {
+        examViewModel.event.collect { message ->
+            makeText(context, message, LENGTH_LONG).show()
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        AlertGlobalEvent.appointmentConfirmations.collect { appointmentId ->
+            appointmentViewModel.completeAppointment(appointmentId)
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        AlertGlobalEvent.examConfirmations.collect { examId ->
+            examViewModel.completeExam(examId)
+        }
+    }
+
 
     AppScaffold(
         DateUtils.format(getCurrentDate()),
@@ -122,9 +149,9 @@ fun AppointmentsHomeScreen(
             isRefreshing = refreshAppointments || refreshExams,
             onRefresh = {
                 appointmentViewModel.clearError()
-                appointmentViewModel.refreshAppointments()
                 examViewModel.clearError()
-                examViewModel.refreshExams()
+                appointmentViewModel.refreshAppointments(context)
+                examViewModel.refreshExams(context)
             },
             modifier = Modifier
                 .fillMaxSize()

@@ -49,7 +49,10 @@ class MedicationRepositoryImpl (
                 parameter("id_usuario","eq.$userId")
             }.body()
 
-            val reminders: List<MedicationReminderDto> = KtorClient.client.get("rest/v1/recordatorio_medicamento").body()
+            val reminders: List<MedicationReminderDto> = KtorClient.client.get("rest/v1/recordatorio_medicamento"){
+                parameter("select", "*,medicamento!inner(id_usuario)")
+                parameter("medicamento.id_usuario", "eq.$userId")
+            }.body()
 
             administrationRouteDao.upsertAdministrationRoutes(routes.map { it.toEntity() })
             medicationDao.upsertMedications(medications.map { it.toEntity() })

@@ -1,5 +1,6 @@
 package com.pdm0126.medpal.ui.screens.Appoinments
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
@@ -9,11 +10,14 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import com.pdm0126.medpal.data.local.database.entities.toModel
 import com.pdm0126.medpal.data.model.Appointment
 import com.pdm0126.medpal.data.model.Exam
+import com.pdm0126.medpal.data.notifications.ReminderAlarmManager
 import com.pdm0126.medpal.data.repositories.repositoryExam.ExamRepository
 import com.pdm0126.medpal.data.repositories.repositoryOfflineFirst.Appointment.AppointmentRepository
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -21,7 +25,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.minus
+import kotlinx.datetime.toLocalDateTime
 import java.time.LocalDate
+import kotlin.time.Clock
 
 class ExamViewModel(
     private val examRepository: ExamRepository,
@@ -48,6 +57,9 @@ class ExamViewModel(
 
     private val _error = MutableStateFlow<String?>(null)
     val error = _error.asStateFlow()
+
+    private val _event = MutableSharedFlow<String>()
+    val event = _event.asSharedFlow()
 
     val exams: StateFlow<List<Exam>> = combine(
         examRepository.getExamsWithReminders(userId)
@@ -101,14 +113,44 @@ class ExamViewModel(
         }
     }
 
-    fun refreshExams() {
+    fun refreshExams(context: Context) {
         viewModelScope.launch {
             _refreshing.value = true
             _error.value = null
 
             examRepository.refresh(userId)
+                .onSuccess {
+                    val examsWithReminders = examRepository.getExamsWithRemindersNotifications(userId).first()
+                    val appointmentMap = appointments.value.associateBy { it.id }
+
+                    examsWithReminders.forEach { relation ->
+                        val exam = relation.exam
+                        val associatedAppointment = appointmentMap[exam.appointmentId]
+
+                        if (associatedAppointment != null) {
+                            relation.reminders.forEach { reminder ->
+                                val alarmDate = associatedAppointment.date.minus(reminder.startDay, DateTimeUnit.DAY)
+                                val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+
+                                if (alarmDate >= today) {
+                                    ReminderAlarmManager.scheduleExamAlarm(
+                                        context = context,
+                                        examId = exam.id,
+                                        title = "Recordatorio de Examen: ${exam.title}",
+                                        description = "Tu examen en ${exam.place} está programado junto a tu cita del ${associatedAppointment.date}",
+                                        hour = reminder.time.hour,
+                                        minute = reminder.time.minute,
+                                        startDate = alarmDate
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    _event.emit("¡Exámenes y recordatorios sincronizados!")
+                }
                 .onFailure { error ->
                     _error.value = "Error al actualizar: ${error.message}"
+                    _event.emit("Error de sincronización en exámenes.")
                 }
             _refreshing.value = false
         }

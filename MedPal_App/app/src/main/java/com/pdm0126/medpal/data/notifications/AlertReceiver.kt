@@ -14,8 +14,21 @@ class AlertReceiver : BroadcastReceiver() {
 
         val id = intent.getLongExtra("ALERT_ID", -1L)
         val typeString = intent.getStringExtra("ALERT_TYPE") ?: "MEDICAMENTO"
-        val title = intent.getStringExtra("ALERT_TITLE") ?: "Recordatorio"
-        val subtitle = intent.getStringExtra("ALERT_SUBTITLE") ?: "Es hora de tu dosis"
+
+        val defaultTitle = when (typeString) {
+            "CITA" -> "¡Tenés una cita médica!"
+            "EXAMEN" -> "¡Recordatorio de examen!"
+            else -> "Hora de tu medicamento"
+        }
+
+        val defaultSubtitle = when (typeString) {
+            "CITA" -> "Revisá los detalles de tu cita de hoy."
+            "EXAMEN" -> "Preparate para tu examen programado."
+            else -> "Es hora de tu dosis"
+        }
+
+        val title = intent.getStringExtra("ALERT_TITLE") ?: defaultTitle
+        val subtitle = intent.getStringExtra("ALERT_SUBTITLE") ?: defaultSubtitle
 
         val alertType = when (typeString) {
             "CITA" -> AlertType.CITA
