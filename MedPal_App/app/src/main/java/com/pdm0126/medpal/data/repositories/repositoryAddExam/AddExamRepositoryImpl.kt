@@ -62,13 +62,13 @@ class AddExamRepositoryImpl(
         examId: Long?,
         appointmentId: Long?,
         time: LocalTime,
-        frequencyDays: Int,
+        frequencyDays: String,
         daysBefore: Int
     ): Result<Unit> {
         return try {
             val jsonBody = buildJsonObject {
                 put("dias_inicio", daysBefore)
-                put("frecuencia", frequencyDays.toString())
+                put("frecuencia", frequencyDays)
                 put("hora", time.toString())
                 if (appointmentId != null) {
                     put("id_cita", appointmentId.toLong())

@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import com.pdm0126.medpal.data.local.database.entities.toModel
 import com.pdm0126.medpal.data.model.Appointment
 import com.pdm0126.medpal.data.model.Exam
+import com.pdm0126.medpal.data.notifications.AlertGlobalEvent
 import com.pdm0126.medpal.data.notifications.ReminderAlarmManager
 import com.pdm0126.medpal.data.repositories.repositoryExam.ExamRepository
 import com.pdm0126.medpal.data.repositories.repositoryOfflineFirst.Appointment.AppointmentRepository
@@ -26,6 +27,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
 import kotlinx.datetime.toLocalDateTime
@@ -60,6 +62,14 @@ class ExamViewModel(
 
     private val _event = MutableSharedFlow<String>()
     val event = _event.asSharedFlow()
+
+    init {
+        viewModelScope.launch {
+            AlertGlobalEvent.appointmentConfirmations.collect { examId ->
+                completeExam(examId)
+            }
+        }
+    }
 
     val exams: StateFlow<List<Exam>> = combine(
         examRepository.getExamsWithReminders(userId)
@@ -130,17 +140,27 @@ class ExamViewModel(
                         if (associatedAppointment != null) {
                             relation.reminders.forEach { reminder ->
                                 val alarmDate = associatedAppointment.date.minus(reminder.startDay, DateTimeUnit.DAY)
-                                val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
 
-                                if (alarmDate >= today) {
+                                val scheduledAlarmDateTime = LocalDateTime(
+                                    year = alarmDate.year,
+                                    month = alarmDate.monthNumber,
+                                    day = alarmDate.dayOfMonth,
+                                    hour = reminder.time.hour,
+                                    minute = reminder.time.minute
+                                )
+                                val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+
+                                if (scheduledAlarmDateTime >= now) {
                                     ReminderAlarmManager.scheduleExamAlarm(
                                         context = context,
                                         examId = exam.id,
                                         title = "Recordatorio de Examen: ${exam.title}",
-                                        description = "Tu examen en ${exam.place} está programado junto a tu cita del ${associatedAppointment.date}",
+                                        description = "Tu examen en ${exam.place} está programado junto a tu cita ${associatedAppointment.title} del ${associatedAppointment.date}",
                                         hour = reminder.time.hour,
                                         minute = reminder.time.minute,
-                                        startDate = alarmDate
+                                        examDate = associatedAppointment.date,
+                                        daysBefore = reminder.startDay,
+                                        frequency = reminder.frequency
                                     )
                                 }
                             }

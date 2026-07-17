@@ -9,15 +9,12 @@ import com.pdm0126.medpal.MedPalApplication
 import com.pdm0126.medpal.data.model.FrequencyReminder
 import com.pdm0126.medpal.data.repositories.repositoryAddAppointment.AddAppointmentRepository
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
-import kotlinx.datetime.minus
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -67,7 +64,7 @@ class AddAppointmentViewModel(
                         appointmentId = appointmentId,
                         examId = null,
                         time = reminderTime,
-                        frequencyDays = frequency.getDays() ?: 1,
+                        frequencyDays = frequency.name,
                         daysBefore = startDay
                     ).onSuccess {
                         _event.send("Cita y recordatorio creados exitosamente")

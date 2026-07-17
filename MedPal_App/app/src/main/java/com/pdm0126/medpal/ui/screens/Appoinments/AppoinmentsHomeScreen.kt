@@ -32,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -45,15 +46,18 @@ import com.pdm0126.medpal.R
 import com.pdm0126.medpal.ui.components.AppScaffold
 import com.pdm0126.medpal.ui.components.TopBarCases
 import com.pdm0126.medpal.R.color
+import com.pdm0126.medpal.data.model.Appointment
 import com.pdm0126.medpal.data.notifications.AlertGlobalEvent
 import com.pdm0126.medpal.ui.components.AddCard
 import com.pdm0126.medpal.ui.components.AppoinmentCard
 import com.pdm0126.medpal.ui.components.ClosestAppoinment
 import com.pdm0126.medpal.ui.components.ExamCard
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.daysUntil
+import kotlinx.datetime.toLocalDateTime
 import kotlinx.datetime.todayIn
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -75,6 +79,10 @@ fun AppointmentsHomeScreen(
 ) {
 
     val context = LocalContext.current
+    val now = remember {
+        Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+    }
+
     val appointments by appointmentViewModel.appointments.collectAsStateWithLifecycle()
     val nextAppointment by appointmentViewModel.nextAppointment.collectAsStateWithLifecycle()
     val exams by examViewModel.exams.collectAsStateWithLifecycle()
@@ -85,6 +93,42 @@ fun AppointmentsHomeScreen(
     val refreshExams by examViewModel.refreshing.collectAsState()
     val refreshAppointments by appointmentViewModel.refreshing.collectAsState()
 
+    val upcomingAppointments = remember(appointments, now){
+        appointments.filter { appointment ->
+            val appointmentDateTime = LocalDateTime(
+                year = appointment.date.year,
+                month = appointment.date.month,
+                day = appointment.date.day,
+                hour = appointment.time.hour,
+                minute = appointment.time.minute
+            )
+            appointmentDateTime >= now
+        }
+    }
+
+    val realNextAppointment = remember(upcomingAppointments) {
+        upcomingAppointments
+            .sortedWith(compareBy<Appointment> { it.date }.thenBy { it.time })
+            .firstOrNull()
+    }
+
+    val upcomingExams = remember(exams, appointments, now) {
+        exams.filter { exam ->
+            val associatedAppointment = appointments.find { it.id == exam.appointmentId }
+            if (associatedAppointment != null){
+                val examDateTime = LocalDateTime(
+                    year = associatedAppointment.date.year,
+                    month = associatedAppointment.date.month,
+                    day = associatedAppointment.date.day,
+                    hour = associatedAppointment.time.hour,
+                    minute = associatedAppointment.time.minute
+                )
+                examDateTime >= now
+            } else{
+                false
+            }
+        }
+    }
     LaunchedEffect(Unit) {
         appointmentViewModel.refreshAppointments(context)
         examViewModel.refreshExams(context)
@@ -181,7 +225,7 @@ fun AppointmentsHomeScreen(
                         textAlign = TextAlign.Center
                     )
                 } else {
-                    ClosestAppoinment(nextAppointment)
+                    ClosestAppoinment(realNextAppointment)
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = "Mis citas médicas próximas",
@@ -201,7 +245,7 @@ fun AppointmentsHomeScreen(
                         AddCard(onAddClick = onAddAppointmentClick)
                         Spacer(modifier = Modifier.width(8.dp))
 
-                        if (appointments.isEmpty()) {
+                        if (upcomingAppointments.isEmpty()) {
                             Card(
                                 modifier = Modifier
                                     .height(200.dp)
@@ -215,7 +259,7 @@ fun AppointmentsHomeScreen(
                                     verticalArrangement = Arrangement.Center
                                 ) {
                                     Text(
-                                        text = "No tienes citas programadas",
+                                        text = "No tienes citas proximamente",
                                         style = MaterialTheme.typography.bodySmall,
                                         textAlign = TextAlign.Center,
                                         modifier = Modifier.fillMaxWidth()
@@ -236,7 +280,7 @@ fun AppointmentsHomeScreen(
                                     .padding(end = 16.dp),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                items(appointments) { appointment ->
+                                items(upcomingAppointments) { appointment ->
                                     AppoinmentCard(
                                         appointment = appointment,
                                         onToggleComplete = { appoinmentId ->
@@ -300,7 +344,7 @@ fun AppointmentsHomeScreen(
                     ) {
                         AddCard(onAddClick = onAddExamClick)
                         Spacer(modifier = Modifier.width(8.dp))
-                        if (exams.isEmpty()) {
+                        if (upcomingExams.isEmpty()) {
                             Card(
                                 modifier = Modifier
                                     .height(200.dp)
@@ -314,7 +358,7 @@ fun AppointmentsHomeScreen(
                                     verticalArrangement = Arrangement.Center
                                 ) {
                                     Text(
-                                        text = "No tienes examenes programados",
+                                        text = "No tienes examenes proximamente",
                                         style = MaterialTheme.typography.bodySmall,
                                         textAlign = TextAlign.Center,
                                         modifier = Modifier.fillMaxWidth()
@@ -335,7 +379,7 @@ fun AppointmentsHomeScreen(
                                     .padding(end = 16.dp),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                items(exams) { exam ->
+                                items(upcomingExams) { exam ->
 
                                     val associatedAppointment = appointments.find { it.id == exam.appointmentId }
                                     ExamCard(

@@ -82,21 +82,19 @@ fun AddExamScreen(
                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
 
                 if (message.contains("exitosamente") && isReminderEnabled && selectedAppointment != null) {
+                    val examDate = selectedAppointment!!.date
 
-                    val alarmDate = selectedAppointment!!.date.minus(startDay, DateTimeUnit.DAY)
-                    val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
-
-                    if (alarmDate >= today) {
-                        com.pdm0126.medpal.data.notifications.ReminderAlarmManager.scheduleExamAlarm(
-                            context = context,
-                            examId = 0L,
-                            title = "Recordatorio de Examen: $title",
-                            description = "Tu examen en $place está asociado a tu cita del ${selectedAppointment!!.date}",
-                            hour = reminderTime.hour,
-                            minute = reminderTime.minute,
-                            startDate = alarmDate
-                        )
-                    }
+                    com.pdm0126.medpal.data.notifications.ReminderAlarmManager.scheduleExamAlarm(
+                        context = context,
+                        examId = title.hashCode().toLong(),
+                        title = "Recordatorio de Examen: $title",
+                        description = "Examen en $place, asociado a tu cita del ${selectedAppointment!!.date}",
+                        hour = reminderTime.hour,
+                        minute = reminderTime.minute,
+                        examDate = examDate,
+                        daysBefore = startDay,
+                        frequency = selectedFrequency.name
+                    )
                 }
             }
         }

@@ -100,7 +100,9 @@ fun AddAppointmentScreen(
                             description = "Tu cita con $specialist en $place es el $date",
                             hour = reminderTime.hour,
                             minute = reminderTime.minute,
-                            startDate = alarmDate
+                            appointmentDate = date,
+                            daysBefore = startDay,
+                            frequency = selectedFrequency.name
                         )
                     }
                 }

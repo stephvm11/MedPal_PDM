@@ -33,7 +33,8 @@ fun CalendarScreen(
     appointmentViewModel: AppointmentViewModel = viewModel(factory = AppointmentViewModel.Factory),
     examViewModel: ExamViewModel = viewModel(factory = ExamViewModel.Factory),
     onAddAppointmentClick: () -> Unit,
-    onAddExamClick: () -> Unit
+    onAddExamClick: () -> Unit,
+    onBack: () -> Unit
 ) {
     val appointments by appointmentViewModel.appointments.collectAsStateWithLifecycle()
     val exams by examViewModel.exams.collectAsStateWithLifecycle()
@@ -68,6 +69,7 @@ fun CalendarScreen(
     AppScaffold(
         title = "Mis citas y exámenes",
         topBarScreenCase = TopBarCases.NAVIGATION,
+        onBackClick = onBack,
         floatingActionButton = {
             CalendarFab(
                 fabExpanded = fabExpanded,

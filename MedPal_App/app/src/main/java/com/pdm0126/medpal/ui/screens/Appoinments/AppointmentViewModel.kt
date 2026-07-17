@@ -9,6 +9,7 @@ import com.pdm0126.medpal.MedPalApplication
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import com.pdm0126.medpal.data.local.database.entities.toModel
 import com.pdm0126.medpal.data.model.Appointment
+import com.pdm0126.medpal.data.notifications.AlertGlobalEvent
 import com.pdm0126.medpal.data.notifications.ReminderAlarmManager
 import com.pdm0126.medpal.data.repositories.repositoryOfflineFirst.Appointment.AppointmentRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -45,6 +46,14 @@ class AppointmentViewModel(
 
     private val _event = MutableSharedFlow<String>()
     val event = _event.asSharedFlow()
+
+    init {
+        viewModelScope.launch {
+            AlertGlobalEvent.appointmentConfirmations.collect { appointmentId ->
+                completeAppointment(appointmentId)
+            }
+        }
+    }
 
     val appointments: StateFlow<List<Appointment>> =
         appointmentRepository.getAppointmentsWithReminders(userId)
@@ -130,7 +139,9 @@ class AppointmentViewModel(
                                     description = "Tu cita con ${appointment.specialist} en ${appointment.place} es el ${appointment.date}",
                                     hour = reminder.time.hour,
                                     minute = reminder.time.minute,
-                                    startDate = alarmDate
+                                    appointmentDate = appointment.date,
+                                    daysBefore = reminder.startDay,
+                                    frequency = reminder.frequency
                                 )
                             }
                         }

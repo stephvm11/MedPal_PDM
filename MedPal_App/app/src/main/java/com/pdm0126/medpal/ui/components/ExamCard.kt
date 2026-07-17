@@ -23,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,6 +36,10 @@ import com.pdm0126.medpal.R
 import com.pdm0126.medpal.data.model.Appointment
 import com.pdm0126.medpal.data.model.Exam
 import com.pdm0126.medpal.ui.screens.Appoinments.getCurrentDate
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
 
 @Composable
 fun ExamCard(
@@ -43,10 +48,20 @@ fun ExamCard(
     onToggleComplete: (Long) -> Unit
 ) {
     val isDone = exam.status
-    val today = getCurrentDate()
+    val now = remember { Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()) }
 
-    val examdate = associatedAppointment?.date
-    val isPast = examdate != null && examdate < today
+    val isPast = if (associatedAppointment != null){
+        val examDateTime = LocalDateTime(
+            year = associatedAppointment.date.year,
+            month = associatedAppointment.date.month,
+            day = associatedAppointment.date.day,
+            hour = associatedAppointment.time.hour,
+            minute = associatedAppointment.time.minute
+        )
+        examDateTime < now
+    }else{
+        false
+    }
     val isExpired = isPast && !isDone
 
     OutlinedCard(

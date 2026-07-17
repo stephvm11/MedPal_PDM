@@ -59,7 +59,9 @@ fun MedPal_App(
                 entry<Routes.Calendar> {
                     CalendarScreen(
                         onAddAppointmentClick = { backStack.add(Routes.AddAppointmentForm) },
-                        onAddExamClick = { backStack.add(Routes.AddExamForm) })
+                        onAddExamClick = { backStack.add(Routes.AddExamForm) },
+                        onBack = {backStack.add(Routes.Appoinments)}
+                    )
                 }
                 entry<Routes.Meds> {
                     MedsHomeScreen(

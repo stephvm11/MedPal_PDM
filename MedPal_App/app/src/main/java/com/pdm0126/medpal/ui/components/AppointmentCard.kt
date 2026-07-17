@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -43,16 +44,28 @@ import com.pdm0126.medpal.data.model.Appointment
 import com.pdm0126.medpal.ui.screens.Appoinments.formatDate
 import com.pdm0126.medpal.ui.screens.Appoinments.formatTime
 import com.pdm0126.medpal.ui.screens.Appoinments.getCurrentDate
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
 @Composable
 fun AppoinmentCard(
     appointment: Appointment,
     onToggleComplete: (Long) -> Unit
 ) {
+    val now = remember { kotlin.time.Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()) }
+
+    val appointmentDateTime = LocalDateTime(
+        year = appointment.date.year,
+        month = appointment.date.month,
+        day = appointment.date.day,
+        hour = appointment.time.hour,
+        minute = appointment.time.minute
+    )
+    val isPast = appointmentDateTime < now
     val isDone = appointment.status
-    val today = getCurrentDate()
-    val isPast = appointment.date < today
     val isExpired = isPast && !isDone
+
 
     OutlinedCard(
         modifier = Modifier

@@ -81,7 +81,7 @@ class AddExamViewModel(
                         appointmentId = null,
                         examId = examId,
                         time = reminderTime,
-                        frequencyDays = frequency.getDays() ?: 1,
+                        frequencyDays = frequency.name,
                         daysBefore = startDay
                     ).onSuccess {
                         _event.send("Examen y recordatorio creados exitosamente")

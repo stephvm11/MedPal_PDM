@@ -14,7 +14,7 @@ interface AddExamRepository {
         examId:Long?,
         appointmentId: Long?,
         time: LocalTime,
-        frequencyDays: Int,
+        frequencyDays: String,
         daysBefore: Int
     ): Result<Unit>
 

@@ -15,6 +15,18 @@ class AlertReceiver : BroadcastReceiver() {
         val id = intent.getLongExtra("ALERT_ID", -1L)
         val typeString = intent.getStringExtra("ALERT_TYPE") ?: "MEDICAMENTO"
 
+        when (typeString) {
+            "CITA" -> {
+                AlertGlobalEvent.confirmAppointment(id)
+            }
+            "EXAMEN" -> {
+                AlertGlobalEvent.confirmExam(id)
+            }
+            else -> {
+                AlertGlobalEvent.confirmMedicationTake(id)
+            }
+        }
+
         val defaultTitle = when (typeString) {
             "CITA" -> "¡Tenés una cita médica!"
             "EXAMEN" -> "¡Recordatorio de examen!"

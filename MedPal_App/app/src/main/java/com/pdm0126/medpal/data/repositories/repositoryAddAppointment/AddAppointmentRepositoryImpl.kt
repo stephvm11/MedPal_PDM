@@ -13,7 +13,6 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
-import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -61,13 +60,13 @@ class AddAppointmentRepositoryImpl(
         appointmentId: Long?,
         examId: Long?,
         time: LocalTime,
-        frequencyDays: Int,
+        frequencyDays: String,
         daysBefore: Int
     ): Result<Unit> {
         return try {
             val jsonBody = buildJsonObject {
                 put("dias_inicio", daysBefore)
-                put("frecuencia", frequencyDays.toString())
+                put("frecuencia", frequencyDays)
                 put("hora", time.toString())
                 if (appointmentId != null) {
                     put("id_cita", appointmentId.toLong())

@@ -1,6 +1,5 @@
 package com.pdm0126.medpal.data.repositories.repositoryAddAppointment
 
-import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 
 interface AddAppointmentRepository {
@@ -17,7 +16,7 @@ interface AddAppointmentRepository {
         appointmentId: Long?,
         examId: Long?,
         time: LocalTime,
-        frequencyDays: Int,
+        frequencyDays: String,
         daysBefore: Int
     ): Result<Unit>
 }
